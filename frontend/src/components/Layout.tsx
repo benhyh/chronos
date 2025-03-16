@@ -14,7 +14,7 @@ export function Layout({ children }: LayoutProps) {
             <h1 className="text-2xl font-bold text-foreground">Chronos</h1>
           </div>
         </header>
-        <main className="container mx-auto px-5 py-8">
+        <main className="container mx-auto px-4 py-8">
           {children}
         </main>
       </div>
