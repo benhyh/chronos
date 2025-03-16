@@ -1,5 +1,45 @@
 # ignore TODO.md
-TODO.md
+DEVELOPMENT.md
 PROGRAM.md
+CODEBASE.md
+
+# Frontend
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+frontend/build/
+frontend/dist/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Backend
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+backend/venv/
+backend/env/
+backend/.env
+backend/.venv
+backend/data/*.db
+backend/data/*.json
+backend/dist/
+backend/build/
+backend/*.spec
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 
