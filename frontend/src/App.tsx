@@ -1,13 +1,11 @@
+import Dashboard from "./components/Dashboard";
 import { Sidebar } from "./components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Basic route components
-const Dashboard = () => <div className="p-6">Dashboard Content</div>;
-const TaskManager = () => <div className="p-6">Task Manager Content</div>;
-const FileOrganizer = () => <div className="p-6">File Organizer Content</div>;
-const FolderWatcher = () => <div className="p-6">Folder Watcher Content</div>;
-const TaskScheduler = () => <div className="p-6">Task Scheduler Content</div>;
-const Settings = () => <div className="p-6">Settings Content</div>;
+import TaskManager from "./components/TaskManager";
+import Files from "./components/Files";
+import Settings from "./components/Settings";
+import TaskScheduler from "./components/TaskScheduler";
+import FolderWatcher from "./components/FolderWatcher";
 
 export default function App() {
   return (
@@ -65,15 +63,15 @@ export default function App() {
             </TabsContent>
 
             <TabsContent value="files">
-              <FileOrganizer />
+              <Files />
             </TabsContent>
 
             <TabsContent value="watcher">
-              <FolderWatcher />
+              <FolderWatcher/>
             </TabsContent>
 
             <TabsContent value="scheduler">
-              <TaskScheduler />
+              <TaskScheduler/>
             </TabsContent>
 
             <TabsContent value="settings">
