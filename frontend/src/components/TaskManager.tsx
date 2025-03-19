@@ -71,8 +71,8 @@ export default function TaskManager() {
   const completedTasks = filteredTasks.filter((task) => task.status === "Completed")
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+    <div className="h-full overflow-hidden">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Task Manager</h2>
           <p className="text-muted-foreground">Create, manage, and track your tasks</p>
@@ -83,110 +83,112 @@ export default function TaskManager() {
         </Button>
       </div>
 
-      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      <div className="h-[calc(100%-60px)] overflow-y-auto pb-4">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search tasks..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <SelectValue placeholder="Filter" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tasks</SelectItem>
+              <SelectItem value="high">High Priority</SelectItem>
+              <SelectItem value="medium">Medium Priority</SelectItem>
+              <SelectItem value="low">Low Priority</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <SelectValue placeholder="Filter" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tasks</SelectItem>
-            <SelectItem value="high">High Priority</SelectItem>
-            <SelectItem value="medium">Medium Priority</SelectItem>
-            <SelectItem value="low">Low Priority</SelectItem>
-          </SelectContent>
-        </Select>
+
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all">All ({filteredTasks.length})</TabsTrigger>
+            <TabsTrigger value="pending">Pending ({pendingTasks.length})</TabsTrigger>
+            <TabsTrigger value="in-progress">In Progress ({inProgressTasks.length})</TabsTrigger>
+            <TabsTrigger value="completed">Completed ({completedTasks.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-4">
+            <TaskList tasks={filteredTasks} />
+          </TabsContent>
+
+          <TabsContent value="pending" className="mt-4">
+            <TaskList tasks={pendingTasks} />
+          </TabsContent>
+
+          <TabsContent value="in-progress" className="mt-4">
+            <TaskList tasks={inProgressTasks} />
+          </TabsContent>
+
+          <TabsContent value="completed" className="mt-4">
+            <TaskList tasks={completedTasks} />
+          </TabsContent>
+        </Tabs>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Create New Task</CardTitle>
+            <CardDescription>Add a new task to your list</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Task Title</Label>
+                <Input id="title" placeholder="Enter task title" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" placeholder="Enter task description" />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select defaultValue="medium">
+                    <SelectTrigger id="priority">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select defaultValue="pending">
+                    <SelectTrigger id="status">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="due-date">Due Date</Label>
+                  <Input id="due-date" type="date" />
+                </div>
+              </div>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button>Create Task</Button>
+          </CardFooter>
+        </Card>
       </div>
-
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">All ({filteredTasks.length})</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({pendingTasks.length})</TabsTrigger>
-          <TabsTrigger value="in-progress">In Progress ({inProgressTasks.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completedTasks.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all">
-          <TaskList tasks={filteredTasks} />
-        </TabsContent>
-
-        <TabsContent value="pending">
-          <TaskList tasks={pendingTasks} />
-        </TabsContent>
-
-        <TabsContent value="in-progress">
-          <TaskList tasks={inProgressTasks} />
-        </TabsContent>
-
-        <TabsContent value="completed">
-          <TaskList tasks={completedTasks} />
-        </TabsContent>
-      </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Task</CardTitle>
-          <CardDescription>Add a new task to your list</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Task Title</Label>
-              <Input id="title" placeholder="Enter task title" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" placeholder="Enter task description" />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select defaultValue="medium">
-                  <SelectTrigger id="priority">
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select defaultValue="pending">
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="due-date">Due Date</Label>
-                <Input id="due-date" type="date" />
-              </div>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button>Create Task</Button>
-        </CardFooter>
-      </Card>
     </div>
   )
 }
