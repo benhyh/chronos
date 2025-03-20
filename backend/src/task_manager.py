@@ -25,6 +25,14 @@ class Task(BaseModel):
     # Defaults to False if not specified
     completed: bool = False
     
+    # Field with default value: whether task is in progress
+    # Defaults to False if not specified
+    inProgress: bool = False
+    
+    # Field with default value: whether task is pending
+    # Defaults to True if not specified
+    pending: bool = True
+    
     # Field with default value: task priority (1-5)
     # Defaults to 1 (lowest priority) if not specified
     priority: int = 1

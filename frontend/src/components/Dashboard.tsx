@@ -9,25 +9,25 @@ const Dashboard = () => {
         <StatCard
           icon={<CheckCircle className="h-8 w-8 text-green-500" />}
           title="Tasks Completed"
-          value="12"
+          value="0"
           description="This week"
         />
         <StatCard
           icon={<Clock className="h-8 w-8 text-blue-500" />}
           title="Scheduled Tasks"
-          value="5"
+          value="0"
           description="Upcoming"
         />
         <StatCard
           icon={<FolderOpen className="h-8 w-8 text-amber-500" />}
           title="Files Organized"
-          value="128"
+          value="0"
           description="This month"
         />
         <StatCard
           icon={<AlertCircle className="h-8 w-8 text-red-500" />}
           title="Pending Tasks"
-          value="3"
+          value="0"
           description="Overdue"
         />
       </div>

@@ -31,10 +31,14 @@ class Storage:
             # Execute a command to create a table - this is like adding a drawer labeled "tasks"
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS tasks (
-                    id INTEGER PRIMARY KEY,  -- This is like giving each task a unique number tag
-                    title TEXT NOT NULL,     -- This is the name of the task (and it can't be empty)
-                    description TEXT,        -- This is extra information about the task
-                    due_date TEXT,           -- This is when the task needs to be done by
-                    completed BOOLEAN DEFAULT 0  -- This tracks if the task is done (0=not done, like a checkbox)    
+                    id INTEGER PRIMARY KEY,  
+                    title TEXT NOT NULL,     
+                    description TEXT,       
+                    due_date TEXT,           
+                    completed BOOLEAN DEFAULT 0, 
+                    in_progress BOOLEAN DEFAULT 0,
+                    pending BOOLEAN DEFAULT 1,
+                    priority INTEGER DEFAULT 1
                 )
             ''')
+    

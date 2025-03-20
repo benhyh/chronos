@@ -226,6 +226,13 @@ function TaskList({ tasks }: { tasks: any[] }) {
                       variant={
                         task.priority === "High" ? "destructive" : task.priority === "Medium" ? "default" : "outline"
                       }
+                      className={
+                        task.priority === "High" 
+                          ? "bg-red-500 text-white hover:bg-red-600" 
+                          : task.priority === "Medium" 
+                            ? "bg-orange-500 text-white hover:bg-orange-600" 
+                            : "bg-green-500 text-white hover:bg-green-600"
+                      }
                     >
                       {task.priority}
                     </Badge>
@@ -236,6 +243,13 @@ function TaskList({ tasks }: { tasks: any[] }) {
                           : task.status === "In Progress"
                             ? "secondary"
                             : "default"
+                      }
+                      className={
+                        task.status === "Completed"
+                          ? "bg-black text-white hover:bg-black/90"
+                          : task.status === "In Progress"
+                            ? "bg-blue-500 text-white hover:bg-blue-600"
+                            : "bg-gray-100 text-black hover:bg-gray-200"
                       }
                     >
                       {task.status === "Completed" && <CheckCircle2 className="mr-1 h-3 w-3" />}
@@ -248,7 +262,7 @@ function TaskList({ tasks }: { tasks: any[] }) {
                 </div>
               </div>
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
+                <Button variant= "outline" size="sm">
                   Edit
                 </Button>
                 <Button variant="outline" size="sm" className="text-red-500 hover:bg-red-50 hover:text-red-600">
