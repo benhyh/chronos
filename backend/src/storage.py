@@ -2,6 +2,7 @@
 import sqlite3
 # Import contextmanager - it's like a helper that makes sure we clean up after ourselves when using resources
 from contextlib import contextmanager
+import uuid
 
 # Create a Storage class - think of it as a digital filing cabinet for our tasks
 class Storage:
@@ -26,19 +27,60 @@ class Storage:
 
     # This method creates the structure of our filing cabinet if it doesn't exist yet
     def init_db(self):
-        # Open a connection to our filing cabinet (like unlocking it with a key)
         with self.get_connection() as conn:
-            # Execute a command to create a table - this is like adding a drawer labeled "tasks"
-            conn.execute('''
-                CREATE TABLE IF NOT EXISTS tasks (
-                    id INTEGER PRIMARY KEY,  
-                    title TEXT NOT NULL,     
-                    description TEXT,       
-                    due_date TEXT,           
-                    completed BOOLEAN DEFAULT 0, 
-                    in_progress BOOLEAN DEFAULT 0,
-                    pending BOOLEAN DEFAULT 1,
-                    priority INTEGER DEFAULT 1
-                )
-            ''')
+            # First, check if the tasks table exists
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
+            table_exists = cursor.fetchone() is not None
+            
+            if not table_exists:
+                # Create the table with UUID as TEXT primary key
+                conn.execute('''
+                    CREATE TABLE tasks (
+                        id TEXT PRIMARY KEY,  
+                        title TEXT NOT NULL,     
+                        description TEXT,       
+                        due_date TEXT,           
+                        completed BOOLEAN DEFAULT 0, 
+                        in_progress BOOLEAN DEFAULT 0,
+                        pending BOOLEAN DEFAULT 1,
+                        priority INTEGER DEFAULT 1
+                    )
+                ''')
+            else:
+                # Check if id column exists and is TEXT
+                cursor.execute("PRAGMA table_info(tasks)")
+                columns = cursor.fetchall()
+                id_column = next((col for col in columns if col[1] == 'id'), None)
+                
+                # If id column doesn't exist or is not TEXT, we need to migrate
+                if id_column is None or id_column[2] != 'TEXT':
+                    # Create a new table with the correct schema
+                    conn.execute('''
+                        CREATE TABLE tasks_new (
+                            id TEXT PRIMARY KEY,  
+                            title TEXT NOT NULL,     
+                            description TEXT,       
+                            due_date TEXT,           
+                            completed BOOLEAN DEFAULT 0, 
+                            in_progress BOOLEAN DEFAULT 0,
+                            pending BOOLEAN DEFAULT 1,
+                            priority INTEGER DEFAULT 1
+                        )
+                    ''')
+                    
+                    # Copy data, generating UUIDs for existing records
+                    cursor.execute("SELECT title, description, due_date, completed, in_progress, pending, priority FROM tasks")
+                    rows = cursor.fetchall()
+                    
+                    for row in rows:
+                        new_id = str(uuid.uuid4())
+                        conn.execute(
+                            "INSERT INTO tasks_new (id, title, description, due_date, completed, in_progress, pending, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                            (new_id, *row)
+                        )
+                    
+                    # Replace the old table with the new one
+                    conn.execute("DROP TABLE tasks")
+                    conn.execute("ALTER TABLE tasks_new RENAME TO tasks")
     

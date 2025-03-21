@@ -9,9 +9,13 @@ from typing import List, Optional
 # Import BaseModel from pydantic for data validation
 from pydantic import BaseModel
 
+import uuid
+
 # Define a Task class that inherits from BaseModel
 # This provides automatic validation and serialization
 class Task(BaseModel):
+    id: Optional[str] = None # Database ID, null for new tasks
+    
     # Required field: title of the task (must be a string)
     title: str
     
