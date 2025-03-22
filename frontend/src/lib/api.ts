@@ -114,6 +114,10 @@ export const api = {
 
   completeTask: async (taskId: string): Promise<boolean> => {
     return await callPythonApi('complete_task', taskId) || false;
+  },
+
+  select_folder: async(): Promise<string> => {
+    return await callPythonApi('select_folder') || false;
   }
 };
 

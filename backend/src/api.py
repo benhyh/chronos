@@ -231,3 +231,22 @@ class TaskAPI:
                     pending=bool(pending),
                     priority=priority
                 ))
+
+    def select_folder(self):
+        """Opens a folder selection dialog and returns the selected path"""
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        print("select_folder called from frontend")
+        
+        try:
+            root = tk.Tk()
+            root.withdraw()
+            folder_path = filedialog.askdirectory()
+            root.destroy()
+            
+            print(f"Selected folder: {folder_path}")
+            return folder_path if folder_path else None
+        except Exception as e:
+            print(f"Error in select_folder: {e}")
+            return None

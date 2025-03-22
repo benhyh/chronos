@@ -12,14 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { PlusCircle, Search, Filter, CheckCircle2, Clock, AlertCircle } from "lucide-react"
 import { Textarea } from "./ui/textarea"
 import { api, statusToCode, Task } from "../lib/api"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [taskCreationAttempts, setTaskCreationAttempts] = useState(0)
-  const [taskCreationResponses, setTaskCreationResponses] = useState(0)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [newTaskDialogOpen, setNewTaskDialogOpen] = useState(false)
+  const [editTaskDialogOpen, setEditTaskDialogOpen] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState({
@@ -28,6 +30,16 @@ export default function TaskManager() {
     dueDate: "",
     priority: 1,
     status: 0 // Default to Pending
+  })
+  
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
+    id: "",
+    title: "",
+    description: "",
+    dueDate: "",
+    priority: 1,
+    status: 0
   })
   
   // Fetch tasks on component mount
@@ -59,11 +71,19 @@ export default function TaskManager() {
       [name]: name === "priority" ? parseInt(value) : value
     }))
   }
+
+  // Handle input changes for the edit form
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: name === "priority" ? parseInt(value) : value
+    }))
+  }
   
   // Handle form submission to create a new task
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault()
-    setTaskCreationAttempts(prev => prev + 1)
     try {
       const newTask = await api.addTask(
         formData.title,
@@ -74,7 +94,6 @@ export default function TaskManager() {
       )
       
       console.log("Task creation response:", newTask) // Debug log
-      setTaskCreationResponses(prev => prev + 1)
       
       // Reset form and refresh tasks
       setFormData({
@@ -85,11 +104,62 @@ export default function TaskManager() {
         status: 0
       })
       
+      // Close dialog if open
+      setNewTaskDialogOpen(false)
+      
       fetchTasks()
     } catch (err) {
       console.error("Error creating task:", err)
       setError("Failed to create task")
     }
+  }
+
+  // Handle form submission to update an existing task
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingTask) return
+    
+    try {
+      await api.updateTask(
+        editFormData.id,
+        editFormData.title,
+        editFormData.description,
+        editFormData.dueDate,
+        editFormData.priority,
+        editFormData.status
+      )
+      
+      // Reset form and refresh tasks
+      setEditFormData({
+        id: "",
+        title: "",
+        description: "",
+        dueDate: "",
+        priority: 1,
+        status: 0
+      })
+      
+      setEditingTask(null)
+      setEditTaskDialogOpen(false)
+      fetchTasks()
+    } catch (err) {
+      console.error("Error updating task:", err)
+      setError("Failed to update task")
+    }
+  }
+
+  // Handle form submission to update an existing task
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task)
+    setEditFormData({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      dueDate: task.due_date || "",
+      priority: task.priority,
+      status: statusToCode[task.status]
+    })
+    setEditTaskDialogOpen(true)
   }
   
   // Function to update task status
@@ -128,17 +198,204 @@ export default function TaskManager() {
   return (
     <div className="h-full overflow-hidden">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
-        <div>
+    <div>
           <h2 className="text-2xl font-bold tracking-tight">Task Manager</h2>
           <p className="text-gray-500">
             Create, manage, and track your tasks
           </p>
         </div>
-        <Button className="flex items-center gap-1">
-          <PlusCircle className="h-4 w-4" />
-          <span>New Task</span>
-        </Button>
+        <Dialog open={newTaskDialogOpen} onOpenChange={setNewTaskDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-1">
+              <PlusCircle className="h-4 w-4" />
+              <span>New Task</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+              <DialogDescription>Add a new task to your list</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateTask}>
+              <div className="py-4 space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Task Title</Label>
+                  <Input 
+                    id="title" 
+                    name="title"
+                    placeholder="Enter task title" 
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    name="description"
+                    placeholder="Enter task description" 
+                    value={formData.description}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select 
+                      defaultValue="1"
+                      value={formData.priority.toString()}
+                      onValueChange={(value) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          priority: parseInt(value)
+                        }))
+                      }}
+                    >
+                      <SelectTrigger id="priority">
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">High</SelectItem>
+                        <SelectItem value="2">Medium</SelectItem>
+                        <SelectItem value="1">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      defaultValue="0"
+                      value={formData.status.toString()}
+                      onValueChange={(value) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          status: parseInt(value)
+                        }))
+                      }}
+                    >
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Pending</SelectItem>
+                        <SelectItem value="1">In Progress</SelectItem>
+                        <SelectItem value="2">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Input 
+                      id="dueDate" 
+                      name="dueDate"
+                      type="date" 
+                      value={formData.dueDate}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="flex justify-end">
+                <Button type="submit">Create Task</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      <Dialog open={editTaskDialogOpen} onOpenChange={setEditTaskDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>Update task details</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateTask}>
+            <div className="py-4 space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-title">Task Title</Label>
+                <Input 
+                  id="edit-title" 
+                  name="title"
+                  placeholder="Enter task title" 
+                  value={editFormData.title}
+                  onChange={handleEditInputChange}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea 
+                  id="edit-description" 
+                  name="description"
+                  placeholder="Enter task description" 
+                  value={editFormData.description}
+                  onChange={handleEditInputChange}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-priority">Priority</Label>
+                  <Select 
+                    value={editFormData.priority.toString()}
+                    onValueChange={(value) => {
+                      setEditFormData(prev => ({
+                        ...prev,
+                        priority: parseInt(value)
+                      }))
+                    }}
+                  >
+                    <SelectTrigger id="edit-priority">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">High</SelectItem>
+                      <SelectItem value="2">Medium</SelectItem>
+                      <SelectItem value="1">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select
+                    value={editFormData.status.toString()}
+                    onValueChange={(value) => {
+                      setEditFormData(prev => ({
+                        ...prev,
+                        status: parseInt(value)
+                      }))
+                    }}
+                  >
+                    <SelectTrigger id="edit-status">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Pending</SelectItem>
+                      <SelectItem value="1">In Progress</SelectItem>
+                      <SelectItem value="2">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-dueDate">Due Date</Label>
+                  <Input 
+                    id="edit-dueDate" 
+                    name="dueDate"
+                    type="date" 
+                    value={editFormData.dueDate}
+                    onChange={handleEditInputChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="flex justify-end">
+              <Button type="submit">Update Task</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="h-[calc(100%-60px)] overflow-y-auto pb-4">
         {loading ? (
@@ -185,7 +442,8 @@ export default function TaskManager() {
                 <TaskList 
                   tasks={filteredTasks} 
                   onStatusChange={handleStatusChange} 
-                  onDelete={handleDeleteTask} 
+                  onDelete={handleDeleteTask}
+                  onEdit={handleEditTask}
                 />
               </TabsContent>
 
@@ -193,7 +451,8 @@ export default function TaskManager() {
                 <TaskList 
                   tasks={pendingTasks} 
                   onStatusChange={handleStatusChange} 
-                  onDelete={handleDeleteTask} 
+                  onDelete={handleDeleteTask}
+                  onEdit={handleEditTask}
                 />
               </TabsContent>
 
@@ -201,7 +460,8 @@ export default function TaskManager() {
                 <TaskList 
                   tasks={inProgressTasks} 
                   onStatusChange={handleStatusChange} 
-                  onDelete={handleDeleteTask} 
+                  onDelete={handleDeleteTask}
+                  onEdit={handleEditTask}
                 />
               </TabsContent>
 
@@ -209,7 +469,8 @@ export default function TaskManager() {
                 <TaskList 
                   tasks={completedTasks} 
                   onStatusChange={handleStatusChange} 
-                  onDelete={handleDeleteTask} 
+                  onDelete={handleDeleteTask}
+                  onEdit={handleEditTask}
                 />
               </TabsContent>
             </Tabs>
@@ -248,6 +509,7 @@ export default function TaskManager() {
                         <Label htmlFor="priority">Priority</Label>
                         <Select 
                           defaultValue="1"
+                          value={formData.priority.toString()}
                           onValueChange={(value) => {
                             setFormData(prev => ({
                               ...prev,
@@ -269,6 +531,7 @@ export default function TaskManager() {
                         <Label htmlFor="status">Status</Label>
                         <Select
                           defaultValue="0"
+                          value={formData.status.toString()}
                           onValueChange={(value) => {
                             setFormData(prev => ({
                               ...prev,
@@ -315,11 +578,13 @@ export default function TaskManager() {
 function TaskList({ 
   tasks, 
   onStatusChange, 
-  onDelete 
+  onDelete,
+  onEdit
 }: { 
   tasks: Task[]; 
   onStatusChange: (taskId: string, status: number) => void;
   onDelete: (taskId: string) => void;
+  onEdit: (task: Task) => void;
 }) {
   if (tasks.length === 0) {
     return (
@@ -404,7 +669,11 @@ function TaskList({
                     <SelectItem value="2">Completed</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onEdit(task)}
+                >
                   Edit
                 </Button>
                 <Button 

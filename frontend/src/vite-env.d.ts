@@ -8,6 +8,7 @@ interface Window {
         delete_task: (task_id: string) => Promise<boolean>;
         set_task_status: (task_id: string, status: number) => Promise<boolean>;
         complete_task: (task_id: string) => Promise<boolean>;
+        select_folder: () => Promise<string | null>;
     };
  };
 }
