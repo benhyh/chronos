@@ -59,7 +59,6 @@ interface MisplacedFile extends FileSystemItem {
   icon?: JSX.Element;
 }
 
-// Update FileSystemItem type to include icon property
 interface EnhancedFileSystemItem extends FileSystemItem {
   icon?: JSX.Element;
 }
