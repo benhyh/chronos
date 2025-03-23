@@ -339,16 +339,15 @@ export default function FileOrganizer() {
   }
 
   // Function to handle adding a new organization rule
-  const handleAddRule = () => {
-    if (!newRule.folderName || newRule.extensions.length === 0) {
+  const handleAddRule = async () => {
+    if (!selectedFolder ||!newRule.folderName || newRule.extensions.length === 0) {
       return
     }
 
     const rule = {
-      id: `rule-${Date.now()}`,
       folderName: newRule.folderName,
       extensions: newRule.extensions,
-      enabled: true,
+      enabled: true
     }
 
     setOrganizationRules([...organizationRules, rule])
@@ -597,7 +596,7 @@ export default function FileOrganizer() {
                           <FolderOpen className="h-5 w-5 text-amber-500" />
                           <h3 className="font-medium">{rule.folderName}</h3>
                     </div>
-                        <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                           <Badge
                             variant="outline"
                             className={rule.enabled ? "bg-green-50 text-green-600 border border-gray-200/50" : "bg-red-50 text-red-600 border border-gray-200/50"}
@@ -620,7 +619,7 @@ export default function FileOrganizer() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </div>
+                    </div>
                   </div>
                   <div className="space-y-2">
                         <div className="flex flex-wrap gap-2">
@@ -657,10 +656,10 @@ export default function FileOrganizer() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="folder-name">Folder Name</Label>
+              <Label htmlFor="folder-name">Folder Directory</Label>
               <Input
                 id="folder-name"
-                placeholder="e.g. Images, Documents, Videos"
+                placeholder={selectedFolder ? `${selectedFolder}/` : "Select a folder first"}
                 value={newRule.folderName}
                 onChange={(e) => setNewRule({ ...newRule, folderName: e.target.value })}
               />
@@ -696,7 +695,7 @@ export default function FileOrganizer() {
             {newRule.extensions.length > 0 && (
               <div className="grid gap-2">
                 <Label>Selected Extensions</Label>
-                <div className="flex flex-wrap gap-2 p-2 border rounded-md">
+                <div className="flex flex-wrap gap-2 p-2 ounded-md">
                   {newRule.extensions.map((ext, index) => (
                     <Badge key={index} variant="secondary">
                       {ext}

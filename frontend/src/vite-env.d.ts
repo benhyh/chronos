@@ -10,6 +10,28 @@ interface Window {
         complete_task: (task_id: string) => Promise<boolean>;
         select_folder: () => Promise<string | null>;
         scan_folder: (folderPath: string) => Promise<import('./lib/api').FileSystemItem[]>;
+        add_organization_rule: (
+          base_folder_directory: string,
+          folder: string,
+          extensions: string[]
+        ) => Promise<{
+          id: string;
+          base_folder_directory: string;
+          folder: string;
+          extensions: string[]
+          full_path: string;
+          enabled: boolean;
+        }>;
+        get_organization_rules: (base_folder?: string) => Promise<Array<{
+          id: string;
+          base_folder: string;
+          folder_name: string;
+          full_path: string;
+          extensions: string[];
+          enabled: boolean;
+        }>>;
+        delete_organization_rule: (rule_id: string, base_folder?: string) => Promise<boolean>;
+        clear_organization_rules: (base_folder?: string) => Promise<boolean>;
     };
  };
 }
