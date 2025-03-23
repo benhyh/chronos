@@ -18,7 +18,7 @@ def main():
         js_api=task_api
     )
 
-    # Start the window
+    # Start the window with debugging enabled
     webview.start(debug=True)
 
 if __name__ == '__main__':

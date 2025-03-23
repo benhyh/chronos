@@ -1,8 +1,11 @@
+import tkinter as tk
 import uuid
 import json
+import os
 from task_manager import TaskManager, Task
 from storage import Storage
 from datetime import datetime
+from tkinter import filedialog
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -234,19 +237,90 @@ class TaskAPI:
 
     def select_folder(self):
         """Opens a folder selection dialog and returns the selected path"""
-        import tkinter as tk
-        from tkinter import filedialog
-        
-        print("select_folder called from frontend")
-        
         try:
             root = tk.Tk()
             root.withdraw()
             folder_path = filedialog.askdirectory()
-            root.destroy()
+            root.destroy() 
             
-            print(f"Selected folder: {folder_path}")
             return folder_path if folder_path else None
         except Exception as e:
             print(f"Error in select_folder: {e}")
             return None
+
+    def scan_folder(self, folder_path):
+        """Scans a folder and returns its contents"""
+        
+        print(f"scan_folder called with path: {folder_path}")
+        
+        if not os.path.exists(folder_path):
+            print(f"Folder does not exist: {folder_path}")
+            return []
+        
+        try:
+            # Function to get file size in a human-readable format
+            def get_human_readable_size(size_bytes):
+                # Convert size to readable format (KB, MB, etc.)
+                for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                    if size_bytes < 1024.0:
+                        return f"{size_bytes:.1f} {unit}"
+                    size_bytes /= 1024.0
+                return f"{size_bytes:.1f} PB"
+            
+            # Function to get file extension
+            def get_file_extension(filename):
+                # Get file extension (e.g., '.txt', '.jpg')
+                _, ext = os.path.splitext(filename)
+                return ext.lower()
+            
+            # Recursive function to scan a directory
+            def scan_directory(dir_path):
+                items = []
+                
+                try:
+                    # List all files and folders in the directory
+                    with os.scandir(dir_path) as entries:
+                        for entry in entries:
+                            item_id = str(uuid.uuid4())
+                            
+                            if entry.is_dir():
+                                # it's a folder
+                                children = scan_directory(entry.path)
+                                items.append({
+                                    "id": f"folder-{item_id}",
+                                    "name": entry.name,
+                                    "type": "folder",
+                                    "path": entry.path,
+                                    "children": children
+                                })
+                            else:
+                                # it's a file
+                                try:
+                                    size = get_human_readable_size(entry.stat().st_size)
+                                    extension = get_file_extension(entry.name)
+                                    
+                                    items.append({
+                                        "id": f"file-{item_id}",
+                                        "name": entry.name,
+                                        "type": "file",
+                                        "path": entry.path,
+                                        "size": size,
+                                        "extension": extension
+                                    })
+                                except Exception as e:
+                                    print(f"Error processing file {entry.path}: {e}")
+                except PermissionError:
+                    print(f"Permission denied accessing: {dir_path}")
+                except Exception as e:
+                    print(f"Error scanning directory {dir_path}: {e}")
+                
+                return items
+                
+            # Start the scan from the root folder
+            result = scan_directory(folder_path)
+            return result
+            
+        except Exception as e:
+            print(f"Error in scan_folder: {e}")
+            return []
+    

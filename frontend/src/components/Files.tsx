@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -37,10 +35,37 @@ import {
   Plus,
   AlertCircle,
 } from "lucide-react"
-import { api } from "../lib/api"
+import { api, FileSystemItem } from "../lib/api"
+
+// Define types for our component
+interface FileTypeInfo {
+  id: number;
+  extension: string[];
+  category: string;
+  icon: JSX.Element;
+  color: string;
+}
+
+interface OrganizationRule {
+  id: string;
+  folderName: string;
+  extensions: string[];
+  enabled: boolean;
+}
+
+interface MisplacedFile extends FileSystemItem {
+  currentFolder: string;
+  correctFolder: string;
+  icon?: JSX.Element;
+}
+
+// Update FileSystemItem type to include icon property
+interface EnhancedFileSystemItem extends FileSystemItem {
+  icon?: JSX.Element;
+}
 
 // Mock data for file types
-const fileTypes = [
+const fileTypes: FileTypeInfo[] = [
   {
     id: 1,
     extension: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff"],
@@ -86,7 +111,7 @@ const fileTypes = [
 ]
 
 // Initial organization rules
-const initialRules = [
+const initialRules: OrganizationRule[] = [
   {
     id: "rule-1",
     folderName: "Images",
@@ -109,187 +134,94 @@ const initialRules = [
 
 export default function FileOrganizer() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
-  const [folderContents, setFolderContents] = useState<any[]>([])
+  const [folderContents, setFolderContents] = useState<EnhancedFileSystemItem[]>([])
   const [expandedFolders, setExpandedFolders] = useState<string[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [isOrganizing, setIsOrganizing] = useState(false)
   const [organizingProgress, setOrganizingProgress] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
-  const [organizationRules, setOrganizationRules] = useState(initialRules)
+  const [organizationRules, setOrganizationRules] = useState<OrganizationRule[]>(initialRules)
   const [showRuleDialog, setShowRuleDialog] = useState(false)
   const [newRule, setNewRule] = useState({
     folderName: "",
     extensions: [] as string[],
   })
-  const [misplacedFiles, setMisplacedFiles] = useState<any[]>([])
-  const folderInputRef = useRef<HTMLInputElement>(null)
-
-  // Mock function to simulate selecting a folder
-  
-  /**
-  *   const handleSelectFolder = () => {
-    if (folderInputRef.current) {
-      folderInputRef.current.click() // programmatically triggers a click on the hidden file input element
-    }
-  }
-  */
+  const [misplacedFiles, setMisplacedFiles] = useState<MisplacedFile[]>([])
 
   const handleSelectFolder = async () => {
     try {
-      const folderPath = await api.select_folder()
-
+      const folderPath = await api.select_folder();
+      
       if (folderPath) {
         setSelectedFolder(folderPath);
+
+        scanFolder(folderPath);
       }
     } catch (error) {
       console.error("Error selecting folder:", error);
+      alert("Error selecting folder. See console for details.");
     }
   }
 
-  // Mock function to handle folder selection
-  const handleFolderSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // In a real implementation, this would get the actual folder path
-    // For this mock, we'll just use a placeholder path
-    const folderPath = e.target.value || "/Users/username/Documents"
-    setSelectedFolder(folderPath)
-
-    // Simulate scanning the folder
-    scanFolder(folderPath)
+  // Update the scanFolder function to add icons to files
+  const scanFolder = async (folderPath: string) => {
+    setIsScanning(true);
+    
+    try {
+      // Get folder contents from API (Python backend or mock)
+      const contents = await api.scan_folder(folderPath);
+      
+      if (contents && Array.isArray(contents)) {
+        // Add icons to files based on their extension
+        const contentsWithIcons = addIconsToFileItems(contents);
+        setFolderContents(contentsWithIcons);
+        // Find misplaced files based on organization rules
+        findMisplacedFiles(contentsWithIcons, organizationRules);
+      } else {
+        console.warn("Received invalid folder contents", contents);
+        // If we get invalid data, use an empty array
+        setFolderContents([]);
+      }
+    } catch (error) {
+      console.error("Error scanning folder:", error);
+    } finally {
+      setIsScanning(false);
+    }
   }
 
-  // Mock function to scan a folder and get its contents
-  const scanFolder = (folderPath: string) => {
-    setIsScanning(true)
+  // Helper function to add icons to files recursively
+  const addIconsToFileItems = (items: FileSystemItem[]): EnhancedFileSystemItem[] => {
+    return items.map(item => {
+      if (item.type === "folder" && item.children) {
+        // Recursively process children for folders
+        return {
+          ...item,
+          children: addIconsToFileItems(item.children)
+        };
+      } else if (item.type === "file") {
+        // Add icon based on file extension
+        const fileType = getFileTypeByExtension(item.extension || "");
+        return {
+          ...item,
+          icon: fileType ? fileType.icon : <FileText className="h-4 w-4 text-gray-500" />
+        };
+      }
+      return item as EnhancedFileSystemItem;
+    });
+  }
 
-    // Simulate a delay for scanning
-    setTimeout(() => {
-      // Mock folder contents - in a real implementation, this would come from the Python backend
-      const mockContents = [
-  {
-    id: "folder-1",
-          name: "Images",
-    type: "folder",
-          path: `${folderPath}/Images`,
-    children: [
-      {
-        id: "file-1",
-              name: "vacation.jpg",
-        type: "file",
-              size: "3.8 MB",
-              extension: ".jpg",
-              icon: <Image className="h-4 w-4 text-blue-500" />,
-      },
-      {
-        id: "file-2",
-              name: "family.png",
-        type: "file",
-              size: "2.7 MB",
-              extension: ".png",
-              icon: <Image className="h-4 w-4 text-blue-500" />,
-            },
-          ],
-      },
-      {
-        id: "folder-2",
-          name: "Documents",
-        type: "folder",
-          path: `${folderPath}/Documents`,
-        children: [
-          {
-            id: "file-3",
-              name: "report.docx",
-            type: "file",
-              size: "2.4 MB",
-              extension: ".docx",
-              icon: <FileText className="h-4 w-4 text-amber-500" />,
-            },
-            {
-              id: "file-4",
-              name: "screenshot.png",
-              type: "file",
-              size: "1.5 MB",
-              extension: ".png",
-              icon: <Image className="h-4 w-4 text-blue-500" />,
-            }, // Misplaced file
-            {
-              id: "file-5",
-              name: "presentation.pptx",
-              type: "file",
-              size: "5.1 MB",
-              extension: ".pptx",
-              icon: <FileText className="h-4 w-4 text-red-500" />,
-      },
-    ],
-  },
-  {
-    id: "folder-3",
-          name: "Videos",
-    type: "folder",
-          path: `${folderPath}/Videos`,
-    children: [
-      {
-              id: "file-6",
-              name: "vacation.mp4",
-        type: "file",
-              size: "45.2 MB",
-              extension: ".mp4",
-              icon: <Film className="h-4 w-4 text-red-500" />,
-            },
-            {
-              id: "file-7",
-              name: "notes.txt",
-        type: "file",
-              size: "12 KB",
-              extension: ".txt",
-              icon: <FileText className="h-4 w-4 text-amber-500" />,
-            }, // Misplaced file
-    ],
-  },
-  {
-    id: "folder-4",
-          name: "Downloads",
-    type: "folder",
-          path: `${folderPath}/Downloads`,
-    children: [
-      {
-              id: "file-8",
-              name: "archive.zip",
-              type: "file",
-              size: "15.7 MB",
-              extension: ".zip",
-              icon: <Archive className="h-4 w-4 text-purple-500" />,
-            },
-            {
-              id: "file-9",
-        name: "song.mp3",
-        type: "file",
-        size: "8.7 MB",
-              extension: ".mp3",
-              icon: <Music className="h-4 w-4 text-green-500" />,
-            },
-            {
-              id: "file-10",
-              name: "code.py",
-              type: "file",
-              size: "4.2 KB",
-              extension: ".py",
-              icon: <Code className="h-4 w-4 text-gray-500" />,
-      },
-    ],
-  },
-      ]
-
-      setFolderContents(mockContents)
-      setIsScanning(false)
-
-      // Find misplaced files based on organization rules
-      findMisplacedFiles(mockContents, organizationRules)
-    }, 1500)
+  // Helper function to get file type by extension
+  const getFileTypeByExtension = (extension: string): FileTypeInfo | undefined => {
+    if (!extension) return undefined;
+    
+    return fileTypes.find(type => 
+      type.extension.includes(extension.toLowerCase())
+    );
   }
 
   // Function to find misplaced files based on organization rules
-  const findMisplacedFiles = (contents: any[], rules: any[]) => {
-    const misplaced: any[] = []
+  const findMisplacedFiles = (contents: FileSystemItem[], rules: OrganizationRule[]): void => {
+    const misplaced: MisplacedFile[] = []
 
     // Check each folder
     contents.forEach((folder) => {
@@ -299,10 +231,10 @@ export default function FileOrganizer() {
 
         if (rule) {
           // Check each file in the folder
-          folder.children.forEach((file: any) => {
+          folder.children.forEach((file) => {
             if (file.type === "file") {
               // If the file extension is not allowed in this folder according to the rule
-              if (!rule.extensions.includes(file.extension)) {
+              if (file.extension && !rule.extensions.includes(file.extension)) {
                 misplaced.push({
                   ...file,
                   currentFolder: folder.name,
@@ -319,7 +251,9 @@ export default function FileOrganizer() {
   }
 
   // Function to find the correct folder for a file based on its extension
-  const findCorrectFolder = (extension: string, rules: any[]): string => {
+  const findCorrectFolder = (extension: string | undefined, rules: OrganizationRule[]): string => {
+    if (!extension) return "Unknown";
+    
     for (const rule of rules) {
       if (rule.enabled && rule.extensions.includes(extension)) {
         return rule.folderName
@@ -383,15 +317,18 @@ export default function FileOrganizer() {
       // Remove file from current folder
       const currentFolderIndex = newContents.findIndex((f) => f.name === file.currentFolder)
       if (currentFolderIndex !== -1) {
-        newContents[currentFolderIndex].children = newContents[currentFolderIndex].children.filter(
-          (f: any) => f.id !== file.id,
-        )
+        newContents[currentFolderIndex].children = newContents[currentFolderIndex].children?.filter(
+          (f) => f.id !== file.id,
+        ) || []
       }
 
       // Add file to correct folder
       const correctFolderIndex = newContents.findIndex((f) => f.name === file.correctFolder)
       if (correctFolderIndex !== -1) {
-        newContents[correctFolderIndex].children.push({
+        if (!newContents[correctFolderIndex].children) {
+          newContents[correctFolderIndex].children = []
+        }
+        newContents[correctFolderIndex].children?.push({
           ...file,
           id: `${file.id}-moved`,
         })
@@ -453,7 +390,7 @@ export default function FileOrganizer() {
   }
 
   // Function to render the file tree
-  const renderFileTree = (items: any[], level = 0) => {
+  const renderFileTree = (items: EnhancedFileSystemItem[], level = 0) => {
     return items.map((item) => (
       <div key={item.id} className="file-tree-item">
         {item.type === "folder" ? (
@@ -471,10 +408,10 @@ export default function FileOrganizer() {
               <FolderOpen className="h-5 w-5 text-amber-500 mr-2" />
               <span className="text-sm font-medium">{item.name}</span>
               <span className="ml-auto text-xs text-gray-500">
-                {item.children.length} {item.children.length === 1 ? "item" : "items"}
+                {item.children && item.children.length ? `${item.children.length} ${item.children.length === 1 ? "item" : "items"}` : "0 items"}
               </span>
             </div>
-            {expandedFolders.includes(item.id) && item.children.length > 0 && (
+            {expandedFolders.includes(item.id) && item.children && item.children.length > 0 && (
               <div className="folder-children">{renderFileTree(item.children, level + 1)}</div>
             )}
           </div>
@@ -485,7 +422,7 @@ export default function FileOrganizer() {
             }`}
             style={{ paddingLeft: `${level * 16 + 28}px` }}
           >
-            {item.icon}
+            {item.icon ? item.icon : <FileText className="h-4 w-4 text-gray-500" />}
             <span className="ml-2 text-sm">{item.name}</span>
             <span className="ml-auto text-xs text-gray-500">{item.size}</span>
           </div>
@@ -526,14 +463,6 @@ export default function FileOrganizer() {
               "Organize Files"
             )}
           </Button>
-          <input
-            type="file"
-            ref={folderInputRef}
-            className="hidden"
-            webkitdirectory="true"
-            directory=""
-            onChange={handleFolderSelected}
-          />
         </div>
       </div>
 
@@ -691,7 +620,7 @@ export default function FileOrganizer() {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                  </div>
+                        </div>
                   </div>
                   <div className="space-y-2">
                         <div className="flex flex-wrap gap-2">

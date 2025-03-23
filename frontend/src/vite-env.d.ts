@@ -9,6 +9,7 @@ interface Window {
         set_task_status: (task_id: string, status: number) => Promise<boolean>;
         complete_task: (task_id: string) => Promise<boolean>;
         select_folder: () => Promise<string | null>;
+        scan_folder: (folderPath: string) => Promise<import('./lib/api').FileSystemItem[]>;
     };
  };
 }

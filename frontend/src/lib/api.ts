@@ -7,67 +7,74 @@ export type Task = {
   status: "Pending" | "In Progress" | "Completed";
   status_code: 0 | 1 | 2;
 };
- 
-const isPyWebViewAvailable = () => {
-  if (typeof window === 'undefined') {
-    console.error('Window is undefined');
-    return false;
-  }
-  
-  if (!window.pywebview) {
-    console.error('PyWebView object not found in window');
-    console.log('window keys:', Object.keys(window));
-    return false;
-  }
-  
-  if (!window.pywebview.api) {
-    console.error('PyWebView API object not found');
-    console.log('pywebview keys:', Object.keys(window.pywebview));
-    return false;
-  }
-  
-  console.log('PyWebView API available with methods:', Object.keys(window.pywebview.api));
-  return true;
+
+export interface FileSystemItem {
+  id: string;
+  name: string;
+  type: "file" | "folder";
+  path?: string;
+  size?: string ;
+  extension?: string;
+  children?: FileSystemItem[];
 }
  
+const isPyWebViewAvailable = (): boolean => {
+  return typeof window !== 'undefined' && 
+          window.pywebview !== undefined && 
+          window.pywebview.api !== undefined;
+}
+
+const mockSelectFolder = async (): Promise<string | null> => {
+  console.log("MOCK: Selecting folder");
+  return "/Users/username/Documents";
+}
+
+const mockScanFolder = async (folderPath: string): Promise<FileSystemItem[]> => {
+  console.log("MOCK: Scanning folder", folderPath);
+
+  // Return mock data structure for development
+  return [
+    {
+      id: "folder-1",
+      name: "Images",
+      type: "folder",
+      path: `${folderPath}/Images`,
+      children: [
+        {
+          id: "file-1",
+          name: "vacation.jpg",
+          type: "file",
+          size: "3.8 MB",
+          extension: ".jpg"
+        }
+      ]
+    },
+    {
+      id: "folder-2",
+      name: "Documents",
+      type: "folder",
+      path: `${folderPath}/Documents`,
+      children: [
+        {
+          id: "file-3",
+          name: "report.docx",
+          type: "file",
+          size: "2.4 MB",
+          extension: ".docx"
+        }
+      ]
+    }
+  ];
+}
+
+  
 type PyWebViewApiArgs = string | number | boolean | null | undefined | Record<string, unknown>;
 
 const callPythonApi = async (method: string, ...args: PyWebViewApiArgs[]) => {
   if (!isPyWebViewAvailable()) {
     console.warn(`PyWebView API not available. Method ${method} called with:`, args);
-    
-    // Mock response for development/testing when PyWebView is not available
-    if (method === 'get_all_tasks') {
-      console.log('Returning mock tasks for development');
-      return [
-        {
-          id: "mock-1",
-          title: "Mock Task 1",
-          description: "This is a mock task for development",
-          due_date: "2023-12-31",
-          priority: 2,
-          status: "Pending",
-          status_code: 0
-        }
-      ];
-    }
-    
-    if (method === 'add_task') {
-      const [title, description, due_date, priority, status] = args;
-      console.log('Creating mock task for development');
-      return {
-        id: `mock-${Date.now()}`,
-        title: title as string,
-        description: description as string,
-        due_date: due_date as string,
-        priority: priority as number,
-        status: status === 0 ? "Pending" : status === 1 ? "In Progress" : "Completed",
-        status_code: status as number
-      };
-    }
-    
     return null;
-  }
+  } // not avaliable for web browser - run dev server with backend
 
   try {
     return await window.pywebview.api[method](...args);
@@ -116,8 +123,12 @@ export const api = {
     return await callPythonApi('complete_task', taskId) || false;
   },
 
-  select_folder: async(): Promise<string> => {
+  select_folder: async(): Promise<string | null> => {
     return await callPythonApi('select_folder') || false;
+  },
+
+  scan_folder: async(folderPath: string): Promise<FileSystemItem[]> => {
+    return await callPythonApi('scan_folder', folderPath) || false;
   }
 };
 
