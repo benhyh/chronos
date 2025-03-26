@@ -17,7 +17,7 @@ interface Window {
         ) => Promise<{
           id: string;
           base_folder_directory: string;
-          folder: string;
+          folder_name: string;
           extensions: string[]
           full_path: string;
           enabled: boolean;

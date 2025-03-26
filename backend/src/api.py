@@ -339,14 +339,21 @@ class TaskAPI:
         
     # Organization Rules Operations
 
-    def add_organization_rule(self, base_folder_directory, folder, extensions):
+    def add_organization_rule(self, base_folder_directory: str, folder_name: str, extensions: list[str]) -> dict:
         """
         Add a new organization rule for the current working folder
 
-        Paramaeters:
+        Parameters:
         - base_folder: Base folder directory (the scanned folder)
         - folder_name: Name of the subfolder to create/use for organizing
         - extensions: List of file extensions that should go in this folder
+
+        Implementation steps:
+        1. Validate inputs
+        2. Create folder if it doesn't exist
+        3. Generate rule object
+        4. Store in memory
+        5. Return the rue
 
         Returns: 
         A dictionary with the crated rule details
@@ -358,7 +365,7 @@ class TaskAPI:
                 return
             
             # Create the target folder if it doesn't exist
-            target_folder = os.path.join(base_folder_directory, folder)
+            target_folder = os.path.join(base_folder_directory, folder_name)
             if not os.path.exists(target_folder):
                 os.makedirs(target_folder)
 
@@ -366,7 +373,7 @@ class TaskAPI:
             rule = {
                 "id": rule_id,
                 "base_folder_directory": base_folder_directory,
-                "folder": folder,
+                "folder_name": folder_name,
                 "full_path": target_folder,
                 "extensions": extensions,
                 "enabled": True

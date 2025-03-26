@@ -19,9 +19,12 @@ export interface FileSystemItem {
 }
 
 export interface OrganizationRule {
+  id: string;
   base_folder_directory: string;
   folder_name: string;
+  full_path: string;
   extensions: string[];
+  enabled: boolean;
 }
  
 const isPyWebViewAvailable = (): boolean => {
@@ -36,7 +39,7 @@ const callPythonApi = async (method: string, ...args: PyWebViewApiArgs[]) => {
   if (!isPyWebViewAvailable()) {
     console.warn(`PyWebView API not available. Method ${method} called with:`, args);
     return null;
-  } // not avaliable for web browser - run dev server with backend
+  } // not avaliable for web browser - run dev rver with backend
 
   try {
     return await window.pywebview.api[method](...args);
@@ -95,10 +98,10 @@ export const api = {
 
   add_organization_rule: async(
     base_folder_directory: string,
-    folderName: string,
+    folder_name: string,
     extensions: string[]
   ): Promise<OrganizationRule> => {
-    return await callPythonApi('add_organization_rules', base_folder_directory, folderName, extensions);
+    return await callPythonApi('add_organization_rule', base_folder_directory, folder_name, extensions);
   },
 
 };

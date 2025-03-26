@@ -48,7 +48,9 @@ interface FileTypeInfo {
 
 interface OrganizationRule {
   id: string;
-  folderName: string;
+  base_folder_directory: string;
+  full_path: string;
+  folder_name: string;
   extensions: string[];
   enabled: boolean;
 }
@@ -63,6 +65,11 @@ interface MisplacedFile extends FileSystemItem {
 interface EnhancedFileSystemItem extends FileSystemItem {
   icon?: JSX.Element;
 }
+
+// Helper function to normalize paths
+const normalizePath = (path: string): string => {
+  return path.replace(/\\/g, '/');
+};
 
 // Mock data for file types
 const fileTypes: FileTypeInfo[] = [
@@ -110,28 +117,6 @@ const fileTypes: FileTypeInfo[] = [
   },
 ]
 
-// Initial organization rules
-const initialRules: OrganizationRule[] = [
-  {
-    id: "rule-1",
-    folderName: "Images",
-    extensions: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff"],
-    enabled: true,
-  },
-  {
-    id: "rule-2",
-    folderName: "Documents",
-    extensions: [".doc", ".docx", ".pdf", ".txt", ".rtf", ".odt"],
-    enabled: true,
-  },
-  {
-    id: "rule-3",
-    folderName: "Videos",
-    extensions: [".mp4", ".avi", ".mov", ".mkv", ".wmv", ".flv"],
-    enabled: true,
-  },
-]
-
 export default function FileOrganizer() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [folderContents, setFolderContents] = useState<EnhancedFileSystemItem[]>([])
@@ -140,10 +125,10 @@ export default function FileOrganizer() {
   const [isOrganizing, setIsOrganizing] = useState(false)
   const [organizingProgress, setOrganizingProgress] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
-  const [organizationRules, setOrganizationRules] = useState<OrganizationRule[]>(initialRules)
+  const [organizationRules, setOrganizationRules] = useState<OrganizationRule[]>([])
   const [showRuleDialog, setShowRuleDialog] = useState(false)
   const [newRule, setNewRule] = useState({
-    folderName: "",
+    folder_name: "",
     extensions: [] as string[],
   })
   const [misplacedFiles, setMisplacedFiles] = useState<MisplacedFile[]>([])
@@ -227,7 +212,7 @@ export default function FileOrganizer() {
     contents.forEach((folder) => {
       if (folder.type === "folder" && folder.children) {
         // Find the rule for this folder
-        const rule = rules.find((r) => r.folderName === folder.name && r.enabled)
+        const rule = rules.find((r) => r.folder_name === folder.name && r.enabled)
 
         if (rule) {
           // Check each file in the folder
@@ -256,7 +241,7 @@ export default function FileOrganizer() {
     
     for (const rule of rules) {
       if (rule.enabled && rule.extensions.includes(extension)) {
-        return rule.folderName
+        return rule.folder_name
       }
     }
     return "Unknown"
@@ -340,23 +325,32 @@ export default function FileOrganizer() {
 
   // Function to handle adding a new organization rule
   const handleAddRule = async () => {
-    if (!selectedFolder ||!newRule.folderName || newRule.extensions.length === 0) {
+    if (!selectedFolder ||!newRule.folder_name || newRule.extensions.length === 0) {
       return
     }
 
-    const rule = {
-      folderName: newRule.folderName,
-      extensions: newRule.extensions,
-      enabled: true
-    }
+    try {
+      const result = await api.add_organization_rule(
+        selectedFolder,
+        newRule.folder_name,
+        newRule.extensions,
+      )
 
-    setOrganizationRules([...organizationRules, rule])
-    setNewRule({ folderName: "", extensions: [] })
-    setShowRuleDialog(false)
+      if (result) {
 
-    // Re-check for misplaced files with the new rule
-    if (folderContents.length > 0) {
-      findMisplacedFiles(folderContents, [...organizationRules, rule])
+        setOrganizationRules([...organizationRules, result])
+        setNewRule({folder_name: "", extensions: [] })
+        setShowRuleDialog(false)
+      } else {
+        console.log("Does not work");
+      }
+  
+      // Re-check for misplaced files with the new rule
+      if (folderContents.length > 0) {
+        findMisplacedFiles(folderContents, [...organizationRules, result])
+      }
+    } catch (error) {
+      console.log(`There has been a n error in adding a new rule: ${error}`);
     }
   }
 
@@ -482,6 +476,17 @@ export default function FileOrganizer() {
             </div>
           </CardContent>
         </Card>
+      ) : folderContents.length === 0 ? (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center justify-center py-8">
+              <AlertCircle className="mb-4 h-10 w-10 text-gray-400" />
+              <p className="mb-2 text-center text-lg font-medium">No files found</p>
+              <p className="mb-4 text-center text-sm text-gray-500">Please select a different folder to scan!</p>
+              <Button onClick={handleSelectFolder}>Select Different Folder</Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
       <Tabs defaultValue="file-explorer" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -510,7 +515,7 @@ export default function FileOrganizer() {
                 </div>
               </div>
                 <CardDescription>
-                  {selectedFolder}
+                  {selectedFolder ? normalizePath(selectedFolder) : ""}
                   {misplacedFiles.length > 0 && (
                     <Badge variant="outline" className="ml-2 bg-red-50 text-red-600 border border-gray-200/50">
                       {misplacedFiles.length} misplaced files
@@ -594,7 +599,8 @@ export default function FileOrganizer() {
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                           <FolderOpen className="h-5 w-5 text-amber-500" />
-                          <h3 className="font-medium">{rule.folderName}</h3>
+                          <h3 className="font-medium">{rule.folder_name}</h3>
+                          <h4 className="text-gray-500 text-sm mt-0.">{normalizePath(rule.full_path)}</h4>
                     </div>
                     <div className="flex items-center space-x-2">
                           <Badge
@@ -659,9 +665,9 @@ export default function FileOrganizer() {
               <Label htmlFor="folder-name">Folder Directory</Label>
               <Input
                 id="folder-name"
-                placeholder={selectedFolder ? `${selectedFolder}/` : "Select a folder first"}
-                value={newRule.folderName}
-                onChange={(e) => setNewRule({ ...newRule, folderName: e.target.value })}
+                placeholder={selectedFolder ? `${normalizePath(selectedFolder)}/` : "Select a folder first"}
+                value={newRule.folder_name}
+                onChange={(e) => setNewRule({ ...newRule, folder_name: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
@@ -709,7 +715,7 @@ export default function FileOrganizer() {
             <Button variant="outline" onClick={() => setShowRuleDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddRule} disabled={!newRule.folderName || newRule.extensions.length === 0}>
+            <Button onClick={handleAddRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
               Add Rule
             </Button>
           </DialogFooter>

@@ -3,6 +3,10 @@ DEVELOPMENT.md
 PROGRAM.md
 CODEBASE.md
 CHANGES.md
+MERMAID.md
+
+# code
+dev.py
 
 # Frontend
 frontend/node_modules/
