@@ -1,22 +1,16 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card"
-import { CheckCircle, Clock, FolderOpen, AlertCircle } from "lucide-react"
+import { CheckCircle, FolderOpen, AlertCircle } from "lucide-react"
 
 const Dashboard = () => {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           icon={<CheckCircle className="h-8 w-8 text-green-500" />}
           title="Tasks Completed"
           value="0"
           description="This week"
-        />
-        <StatCard
-          icon={<Clock className="h-8 w-8 text-blue-500" />}
-          title="Scheduled Tasks"
-          value="0"
-          description="Upcoming"
         />
         <StatCard
           icon={<FolderOpen className="h-8 w-8 text-amber-500" />}
@@ -36,7 +30,7 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest automation activities</CardDescription>
+            <CardDescription>Your latest activities</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

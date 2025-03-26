@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home, CheckSquare, FolderClosed, Eye, Clock, Settings } from "lucide-react"
+import { Home, CheckSquare, FolderClosed, Settings } from "lucide-react"
 import { ReactNode } from 'react';
 
 export function Sidebar() {
@@ -16,8 +16,6 @@ export function Sidebar() {
                 <SidebarItem href="/dashboard" icon={<Home size={20} />} label="Dashboard" />
                 <SidebarItem href="/tasks" icon={<CheckSquare size={20} />} label="Task Manager" />
                 <SidebarItem href="/files" icon={<FolderClosed size={20} />} label="File Organizer" />
-                <SidebarItem href="/watcher" icon={<Eye size={20} />} label="Folder Watcher" />
-                <SidebarItem href="/scheduler" icon={<Clock size={20} />} label="Task Scheduler" />
                 <SidebarItem href="/settings" icon={<Settings size={20} />} label="Settings" />
             </nav>
             <div className="border-t p-4">

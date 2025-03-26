@@ -208,30 +208,52 @@ export default function FileOrganizer() {
   const findMisplacedFiles = (contents: FileSystemItem[], rules: OrganizationRule[]): void => {
     const misplaced: MisplacedFile[] = []
 
-    // Check each folder
-    contents.forEach((folder) => {
-      if (folder.type === "folder" && folder.children) {
-        // Find the rule for this folder
-        const rule = rules.find((r) => r.folder_name === folder.name && r.enabled)
+    // Step 1: Create a recursive helper function to scan folders
+    const scanFolderRecursively = (folder: FileSystemItem, currentPath: string): MisplacedFile[] => {
+      const folderMisplaced: MisplacedFile[] = []
 
-        if (rule) {
-          // Check each file in the folder
-          folder.children.forEach((file) => {
-            if (file.type === "file") {
-              // If the file extension is not allowed in this folder according to the rule
-              if (file.extension && !rule.extensions.includes(file.extension)) {
-                misplaced.push({
-                  ...file,
-                  currentFolder: folder.name,
-                  correctFolder: findCorrectFolder(file.extension, rules),
-                })
-              }
+      // Step 2: Check if current folder matches any organization rule
+      const matchingRule = rules.find((r) => r.folder_name === folder.name && r.enabled)
+
+      // Step 3: If there's a matching rule, check files in current folder
+      if (matchingRule && folder.children) {
+        folder.children.forEach((item) => {
+          if (item.type === "file") {
+            // Check if file extension doesn't match the rule
+            if (item.extension && !matchingRule.extensions.includes(item.extension)) {
+              folderMisplaced.push({
+                ...item,
+                currentFolder: folder.name,
+                correctFolder: findCorrectFolder(item.extension, rules),
+              })
             }
-          })
-        }
+          }
+        })
+      }
+
+      // Step 4: Recursively scan all subfolders
+      if (folder.children) {
+        folder.children.forEach((item) => {
+          if (item.type === "folder") {
+            // Recursive call for each subfolder
+            const subfolderMisplaced = scanFolderRecursively(item, `${currentPath}/${item.name}`)
+            folderMisplaced.push(...subfolderMisplaced)
+          }
+        })
+      }
+
+      return folderMisplaced
+    }
+
+    // Step 5: Start recursive scanning from each top-level folder
+    contents.forEach((folder) => {
+      if (folder.type === "folder") {
+        const folderMisplaced = scanFolderRecursively(folder, folder.name)
+        misplaced.push(...folderMisplaced)
       }
     })
 
+    // Step 6: Update the state with all misplaced files
     setMisplacedFiles(misplaced)
   }
 
