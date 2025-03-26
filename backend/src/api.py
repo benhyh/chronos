@@ -16,7 +16,11 @@ class DateTimeEncoder(json.JSONEncoder):
 class TaskAPI:
     def __init__(self):
         self.task_manager = TaskManager()
-        self.storage = Storage("tasks.db")  # SQLite database connection
+        self.storage = Storage("tasks.db")  # To store our tasks
+        
+        # Organization rules as in-memory dictionary keyed by base folder path
+        self.organizaton_rules = {}
+        self.current_folder_path = None
         
         # Load tasks from database on startup
         self.load_tasks_from_db()
@@ -234,25 +238,34 @@ class TaskAPI:
                     pending=bool(pending),
                     priority=priority
                 ))
+    
+    # Folder Operations
 
     def select_folder(self):
         """Opens a folder selection dialog and returns the selected path"""
         try:
             root = tk.Tk()
             root.withdraw()
+
             folder_path = filedialog.askdirectory()
-            root.destroy() 
+            root.destroy()
+
+            if folder_path:
+                self.current_folder_path = folder_path
+                # If this is a new folder, initalize empty rules
+                if folder_path not in self.organizaton_rules:
+                    self.organizaton_rules[folder_path] = []
+                    
+                return folder_path if folder_path else None
             
-            return folder_path if folder_path else None
+            return None
         except Exception as e:
             print(f"Error in select_folder: {e}")
             return None
 
     def scan_folder(self, folder_path):
         """Scans a folder and returns its contents"""
-        
-        print(f"scan_folder called with path: {folder_path}")
-        
+                
         if not os.path.exists(folder_path):
             print(f"Folder does not exist: {folder_path}")
             return []
@@ -272,7 +285,7 @@ class TaskAPI:
                 # Get file extension (e.g., '.txt', '.jpg')
                 _, ext = os.path.splitext(filename)
                 return ext.lower()
-            
+                
             # Recursive function to scan a directory
             def scan_directory(dir_path):
                 items = []
@@ -323,4 +336,116 @@ class TaskAPI:
         except Exception as e:
             print(f"Error in scan_folder: {e}")
             return []
+        
+    # Organization Rules Operations
+
+    def add_organization_rule(self, base_folder_directory: str, folder_name: str, extensions: list[str]) -> dict:
+        """
+        Add a new organization rule for the current working folder
+
+        Parameters:
+        - base_folder: Base folder directory (the scanned folder)
+        - folder_name: Name of the subfolder to create/use for organizing
+        - extensions: List of file extensions that should go in this folder
+
+        Implementation steps:
+        1. Validate inputs
+        2. Create folder if it doesn't exist
+        3. Generate rule object
+        4. Store in memory
+        5. Return the rue
+
+        Returns: 
+        A dictionary with the crated rule details
+        """
+
+        try:
+            if not os.path.exists(base_folder_directory):
+                print(f"Base folder doesn't exist: {base_folder_directory}")
+                return
+            
+            # Create the target folder if it doesn't exist
+            target_folder = os.path.join(base_folder_directory, folder_name)
+            if not os.path.exists(target_folder):
+                os.makedirs(target_folder)
+
+            rule_id = str(uuid.uuid4())
+            rule = {
+                "id": rule_id,
+                "base_folder_directory": base_folder_directory,
+                "folder_name": folder_name,
+                "full_path": target_folder,
+                "extensions": extensions,
+                "enabled": True
+            }
+
+            # Initialize the list for this base folder if it doesn't exist
+            if base_folder_directory not in self.organizaton_rules:
+                self.organizaton_rules[base_folder_directory] = []
+            
+            # Add to in-memory rules
+            self.organizaton_rules[base_folder_directory].append(rule)
+
+            return rule
+        
+        except Exception as e:
+            print(f"Error in add_organization_rules: {e}") 
+            return None
+   
+    def delete_organization_rules(self, rule_id, base_folder=None):
+        """Delete an organization rule"""
+        if base_folder is None:
+            base_folder = self.current_folder_path
+        
+        if not base_folder or base_folder not in self.organizaton_rules:
+            return False
+        
+        rules = self.organizaton_rules[base_folder]
+        self.organizaton_rules[base_folder] = [rule for rule in rules if rule["id"] != rule_id]
+
+        return True
     
+    def clear_organization_rules(self, base_folder=None):
+        """Clear all organization rules for the specified folder"""
+        if base_folder is None:
+            base_folder = self.current_folder_path
+        
+        if base_folder in self.organizaton_rules:
+            self.organizaton_rules[base_folder] = []
+            return True
+        return False
+    
+    def organize_files(misplaced_files, rules):
+        """
+        When we add an organization rule, here are the following params we're passing in:
+
+        1) File directory (the file we want our organized files to be in)
+        2) File type category (what type of files should be in that folder)
+        
+        """
+
+        """
+        Scanning process (we scan the folder for misplaced files):
+
+        1) First, we need to find all of the misplaced files.
+        2) This scanning function takes in "rules" and basically scan our directory for file extensions
+        [file_category] that should be in [file_directory] and then highlight it and pass it as misplaced_files
+        3) Refect misplaced_files through frontend by highlighting them red
+
+        This scanning process will give users a preview of the misplaced files.
+
+        """
+
+        """
+        Organize process 
+
+        1) Create backup of current folder directory
+        2) Ask for confirmation
+        3) Then we're going to call organize_files
+        
+        """
+        
+        def move_file(source_path, destination_folder):
+            pass
+        
+        pass

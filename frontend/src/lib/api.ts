@@ -17,64 +17,29 @@ export interface FileSystemItem {
   extension?: string;
   children?: FileSystemItem[];
 }
+
+export interface OrganizationRule {
+  id: string;
+  base_folder_directory: string;
+  folder_name: string;
+  full_path: string;
+  extensions: string[];
+  enabled: boolean;
+}
  
 const isPyWebViewAvailable = (): boolean => {
   return typeof window !== 'undefined' && 
           window.pywebview !== undefined && 
           window.pywebview.api !== undefined;
 }
-
-const mockSelectFolder = async (): Promise<string | null> => {
-  console.log("MOCK: Selecting folder");
-  return "/Users/username/Documents";
-}
-
-const mockScanFolder = async (folderPath: string): Promise<FileSystemItem[]> => {
-  console.log("MOCK: Scanning folder", folderPath);
-
-  // Return mock data structure for development
-  return [
-    {
-      id: "folder-1",
-      name: "Images",
-      type: "folder",
-      path: `${folderPath}/Images`,
-      children: [
-        {
-          id: "file-1",
-          name: "vacation.jpg",
-          type: "file",
-          size: "3.8 MB",
-          extension: ".jpg"
-        }
-      ]
-    },
-    {
-      id: "folder-2",
-      name: "Documents",
-      type: "folder",
-      path: `${folderPath}/Documents`,
-      children: [
-        {
-          id: "file-3",
-          name: "report.docx",
-          type: "file",
-          size: "2.4 MB",
-          extension: ".docx"
-        }
-      ]
-    }
-  ];
-}
-
   
-type PyWebViewApiArgs = string | number | boolean | null | undefined | Record<string, unknown>;
+type PyWebViewApiArgs = string | number | boolean | null | undefined | Record<string, unknown> | string[];
 
 const callPythonApi = async (method: string, ...args: PyWebViewApiArgs[]) => {
   if (!isPyWebViewAvailable()) {
     console.warn(`PyWebView API not available. Method ${method} called with:`, args);
     return null;
-  } // not avaliable for web browser - run dev server with backend
+  } // not avaliable for web browser - run dev rver with backend
 
   try {
     return await window.pywebview.api[method](...args);
@@ -129,7 +94,16 @@ export const api = {
 
   scan_folder: async(folderPath: string): Promise<FileSystemItem[]> => {
     return await callPythonApi('scan_folder', folderPath) || false;
-  }
+  },
+
+  add_organization_rule: async(
+    base_folder_directory: string,
+    folder_name: string,
+    extensions: string[]
+  ): Promise<OrganizationRule> => {
+    return await callPythonApi('add_organization_rule', base_folder_directory, folder_name, extensions);
+  },
+
 };
 
 // Map status string to status code for API calls
