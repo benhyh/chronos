@@ -1,22 +1,20 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card"
-import { CheckCircle, Clock, FolderOpen, AlertCircle } from "lucide-react"
+import { CheckCircle, FolderOpen, AlertCircle, FileText, BarChart2 } from "lucide-react"
+import { Button } from './ui/button';
 
 const Dashboard = () => {
+  const activityStatus = 0;
+  const taskStatus = 0
+  
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           icon={<CheckCircle className="h-8 w-8 text-green-500" />}
           title="Tasks Completed"
           value="0"
           description="This week"
-        />
-        <StatCard
-          icon={<Clock className="h-8 w-8 text-blue-500" />}
-          title="Scheduled Tasks"
-          value="0"
-          description="Upcoming"
         />
         <StatCard
           icon={<FolderOpen className="h-8 w-8 text-amber-500" />}
@@ -36,48 +34,89 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest automation activities</CardDescription>
+            <CardDescription>Your latest activities</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <ActivityItem
-                title="Files organized in Downloads folder"
-                time="10 minutes ago"
-                description="15 files moved to appropriate folders"
-              />
-              <ActivityItem
-                title="Backup task completed"
-                time="2 hours ago"
-                description="Documents backed up to cloud storage"
-              />
-              <ActivityItem
-                title="New task created"
-                time="Yesterday"
-                description="Weekly report generation scheduled"
-              />
-              <ActivityItem
-                title="Folder watcher added"
-                time="2 days ago"
-                description="Watching Desktop for new screenshots"
-              />
-            </div>
-          </CardContent>
+          {activityStatus == 0 ? (
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <FileText className="mb-4 h-12 w-12 text-gray-300" />
+                <h3 className="text-lg font-medium">No recent activity</h3>
+                <p className="mt-1 text-sm text-gray-500 max-w-md">
+                  Your recent activities will appear here once you start using the application.
+                </p>
+                <div className="mt-6 flex gap-2">
+                  <Button variant="outline" size="sm">
+                    Create a Task
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Organize Files
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent>
+              <div className="space-y-4">
+                <ActivityItem
+                  title="Files organized in Downloads folder"
+                  time="10 minutes ago"
+                  description="15 files moved to appropriate folders"
+                />
+                <ActivityItem
+                  title="Backup task completed"
+                  time="2 hours ago"
+                  description="Documents backed up to cloud storage"
+                />
+                <ActivityItem
+                  title="New task created"
+                  time="Yesterday"
+                  description="Weekly report generation scheduled"
+                />
+                <ActivityItem
+                  title="Folder watcher added"
+                  time="2 days ago"
+                  description="Watching Desktop for new screenshots"
+                />
+              </div>
+            </CardContent>
+          )}
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Task Progress</CardTitle>
-            <CardDescription>Current status of your tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <ProgressItem title="Weekly File Cleanup" progress={75} status="In Progress" />
-              <ProgressItem title="Database Backup" progress={100} status="Completed" />
-              <ProgressItem title="Report Generation" progress={30} status="In Progress" />
-              <ProgressItem title="Email Organization" progress={0} status="Not Started" />
-            </div>
-          </CardContent>
-        </Card>
+        {taskStatus == 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Task Progress</CardTitle>
+              <CardDescription>Current status of your tasks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <BarChart2 className="mb-4 h-12 w-12 text-gray-300" />
+                <h3 className="text-lg font-medium">No tasks in progress</h3>
+                <p className="mt-1 text-sm text-gray-500 max-w-md">
+                  Create tasks to track your progress and see them here.
+                </p>
+                <Button className="mt-6" size="sm">
+                  Create a Task
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Task Progress</CardTitle>
+              <CardDescription>Current status of your tasks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <ProgressItem title="Weekly File Cleanup" progress={75} status="In Progress" />
+                <ProgressItem title="Database Backup" progress={100} status="Completed" />
+                <ProgressItem title="Report Generation" progress={30} status="In Progress" />
+                <ProgressItem title="Email Organization" progress={0} status="Not Started" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

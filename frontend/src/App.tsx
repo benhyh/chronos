@@ -4,8 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskManager from "./components/TaskManager";
 import Files from "./components/Files";
 import Settings from "./components/Settings";
-import TaskScheduler from "./components/TaskScheduler";
-import FolderWatcher from "./components/FolderWatcher";
 
 export default function App() {
   return (
@@ -13,9 +11,9 @@ export default function App() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-6xl">
-          <h1 className="mb-6 text-3xl font-bold tracking-normal">Task Automation Suite</h1>
+          <h1 className="mb-6 text-3xl font-bold tracking-normal">Task & Folder Manager</h1>
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger 
                 value="dashboard" 
               >
@@ -30,16 +28,6 @@ export default function App() {
                 value="files"
               >
                 Files
-              </TabsTrigger>
-              <TabsTrigger 
-                value="watcher"
-              >
-                Watcher
-              </TabsTrigger>
-              <TabsTrigger 
-                value="scheduler"
-              >
-                Scheduler
               </TabsTrigger>
               <TabsTrigger 
                 value="settings"
@@ -58,14 +46,6 @@ export default function App() {
 
             <TabsContent value="files">
               <Files />
-            </TabsContent>
-
-            <TabsContent value="watcher">
-              <FolderWatcher/>
-            </TabsContent>
-
-            <TabsContent value="scheduler">
-              <TaskScheduler/>
             </TabsContent>
 
             <TabsContent value="settings">

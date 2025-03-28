@@ -50,14 +50,17 @@ interface OrganizationRule {
   id: string;
   base_folder_directory: string;
   full_path: string;
+  desired_folder_directory: string;
   folder_name: string;
   extensions: string[];
   enabled: boolean;
 }
 
 interface MisplacedFile extends FileSystemItem {
-  currentFolder: string;
-  correctFolder: string;
+  current_folder: string;
+  correct_folder: string;
+  source_path: string;
+  destination_path: string;
   icon?: JSX.Element;
 }
 
@@ -128,6 +131,7 @@ export default function FileOrganizer() {
   const [showRuleDialog, setShowRuleDialog] = useState(false)
   const [newRule, setNewRule] = useState({
     folder_name: "",
+    desired_folder_path: "",
     extensions: [] as string[],
   })
   const [misplacedFiles, setMisplacedFiles] = useState<MisplacedFile[]>([])
@@ -207,30 +211,57 @@ export default function FileOrganizer() {
   const findMisplacedFiles = (contents: FileSystemItem[], rules: OrganizationRule[]): void => {
     const misplaced: MisplacedFile[] = []
 
-    // Check each folder
-    contents.forEach((folder) => {
-      if (folder.type === "folder" && folder.children) {
-        // Find the rule for this folder
-        const rule = rules.find((r) => r.folder_name === folder.name && r.enabled)
+    // Step 1: Create a recursive helper function to scan folders
+    const scanFolderRecursively = (folder: FileSystemItem, currentPath: string): MisplacedFile[] => {
+      const folderMisplaced: MisplacedFile[] = []
 
-        if (rule) {
-          // Check each file in the folder
-          folder.children.forEach((file) => {
-            if (file.type === "file") {
-              // If the file extension is not allowed in this folder according to the rule
-              if (file.extension && !rule.extensions.includes(file.extension)) {
-                misplaced.push({
-                  ...file,
-                  currentFolder: folder.name,
-                  correctFolder: findCorrectFolder(file.extension, rules),
+      // Step 2: Check if current folder matches any organization rule
+      const matchingRule = rules.find((r) => r.folder_name === folder.name && r.enabled)
+
+      // Step 3: If there's a matching rule, check files in current folder
+      if (matchingRule && folder.children) {
+        folder.children.forEach((item) => {
+          if (item.type === "file") {
+            // Check if file extension doesn't match the rule
+            if (item.extension && !matchingRule.extensions.includes(item.extension)) {
+              const correctRule = rules.find((r) => r.enabled && r.extensions.includes(item.extension));
+              if (correctRule) {
+                folderMisplaced.push({
+                  ...item,
+                  current_folder: folder.name,
+                  correct_folder: correctRule.folder_name,
+                  source_path: item.path || '',
+                  destination_path: correctRule.full_path
                 })
               }
             }
-          })
-        }
+          }
+        })
+      }
+
+      // Step 4: Recursively scan all subfolders
+      if (folder.children) {
+        folder.children.forEach((item) => {
+          if (item.type === "folder") {
+            // Recursive call for each subfolder
+            const subfolderMisplaced = scanFolderRecursively(item, `${currentPath}/${item.name}`)
+            folderMisplaced.push(...subfolderMisplaced)
+          }
+        })
+      }
+
+      return folderMisplaced
+    }
+
+    // Step 5: Start recursive scanning from each top-level folder
+    contents.forEach((folder) => {
+      if (folder.type === "folder") {
+        const folderMisplaced = scanFolderRecursively(folder, folder.name)
+        misplaced.push(...folderMisplaced)
       }
     })
 
+    // Step 6: Update the state with all misplaced files
     setMisplacedFiles(misplaced)
   }
 
@@ -258,13 +289,28 @@ export default function FileOrganizer() {
   }
 
   // Function to handle organizing files
-  const handleOrganizeFiles = () => {
+  const handleOrganizeFiles = async () => {
     if (misplacedFiles.length === 0) {
       return
     }
 
     setIsOrganizing(true)
     setOrganizingProgress(0)
+
+    try {
+      const success = await api.organize_files(misplacedFiles);
+      if (success) {
+        if (selectedFolder) {
+          await scanFolder(selectedFolder);
+        }
+        setMisplacedFiles([]);
+      } else {
+        console.error("Failed to organize files.")
+      }
+
+    } catch (error) {
+      console.log(`There has been an error with organizing the file: ${error}`)
+    }
 
     // Simulate organizing process
     const totalFiles = misplacedFiles.length
@@ -299,7 +345,7 @@ export default function FileOrganizer() {
 
     misplacedFiles.forEach((file) => {
       // Remove file from current folder
-      const currentFolderIndex = newContents.findIndex((f) => f.name === file.currentFolder)
+      const currentFolderIndex = newContents.findIndex((f) => f.name === file.current_folder)
       if (currentFolderIndex !== -1) {
         newContents[currentFolderIndex].children = newContents[currentFolderIndex].children?.filter(
           (f) => f.id !== file.id,
@@ -307,7 +353,7 @@ export default function FileOrganizer() {
       }
 
       // Add file to correct folder
-      const correctFolderIndex = newContents.findIndex((f) => f.name === file.correctFolder)
+      const correctFolderIndex = newContents.findIndex((f) => f.name === file.current_folder)
       if (correctFolderIndex !== -1) {
         if (!newContents[correctFolderIndex].children) {
           newContents[correctFolderIndex].children = []
@@ -332,16 +378,17 @@ export default function FileOrganizer() {
       const result = await api.add_organization_rule(
         selectedFolder,
         newRule.folder_name,
+        newRule.desired_folder_path,
         newRule.extensions,
       )
 
       if (result) {
 
         setOrganizationRules([...organizationRules, result])
-        setNewRule({folder_name: "", extensions: [] })
+        setNewRule({folder_name: "", desired_folder_path: "", extensions: [] })
         setShowRuleDialog(false)
       } else {
-        console.log("Does not work");
+        console.log("Does not work.");
       }
   
       // Re-check for misplaced files with the new rule
@@ -546,8 +593,8 @@ export default function FileOrganizer() {
                               <span className="text-sm">{file.name}</span>
               </div>
                     <div className="flex items-center space-x-4">
-                              <span className="text-sm text-gray-500 w-32 text-right">{file.currentFolder}</span>
-                              <span className="text-sm font-medium w-32 text-right">{file.correctFolder}</span>
+                              <span className="text-sm text-gray-500 w-32 text-right">{file.current_folder}</span>
+                              <span className="text-sm font-medium w-32 text-right">{file.correct_folder}</span>
                             </div>
                           </div>
                         ))}
@@ -661,12 +708,21 @@ export default function FileOrganizer() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="folder-name">Folder Directory</Label>
+              <Label htmlFor="folder-name">Selected Folder Directory</Label>
               <Input
                 id="folder-name"
                 placeholder={selectedFolder ? `${normalizePath(selectedFolder)}/` : "Select a folder first"}
                 value={newRule.folder_name}
                 onChange={(e) => setNewRule({ ...newRule, folder_name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="folder-name">Desired Folder Directory</Label>
+              <Input
+                id="folder-name"
+                placeholder={selectedFolder ? `${normalizePath(selectedFolder)}/` : "Select a folder first"}
+                value={newRule.desired_folder_path}
+                onChange={(e) => setNewRule({ ...newRule, desired_folder_path: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
