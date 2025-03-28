@@ -12,11 +12,13 @@ interface Window {
         scan_folder: (folderPath: string) => Promise<import('./lib/api').FileSystemItem[]>;
         add_organization_rule: (
           base_folder_directory: string,
-          folder: string,
+          folder_name: string,
+          desired_folder_directory: string,
           extensions: string[]
         ) => Promise<{
           id: string;
           base_folder_directory: string;
+          desired_folder_directory: string;
           folder_name: string;
           extensions: string[]
           full_path: string;
@@ -32,6 +34,16 @@ interface Window {
         }>>;
         delete_organization_rule: (rule_id: string, base_folder?: string) => Promise<boolean>;
         clear_organization_rules: (base_folder?: string) => Promise<boolean>;
+        organize_files: (misplaced_files: Array<{
+          id: string;
+          name: string;
+          type: string;
+          path: string;
+          current_folder: string;
+          correct_folder: string;
+          source_path: string;
+          destination_path: string;
+        }>) => Promise<boolean>;
     };
  };
 }

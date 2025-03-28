@@ -2,6 +2,7 @@ import tkinter as tk
 import uuid
 import json
 import os
+import shutil
 from task_manager import TaskManager, Task
 from storage import Storage
 from datetime import datetime
@@ -339,7 +340,7 @@ class TaskAPI:
         
     # Organization Rules Operations
 
-    def add_organization_rule(self, base_folder_directory: str, folder_name: str, extensions: list[str]) -> dict:
+    def add_organization_rule(self, base_folder_directory: str, folder_name: str, desired_folder_directory: str, extensions: list[str]) -> dict:
         """
         Add a new organization rule for the current working folder
 
@@ -369,10 +370,16 @@ class TaskAPI:
             if not os.path.exists(target_folder):
                 os.makedirs(target_folder)
 
+            # Create the desired folder if it doesn't exist
+            desired_folder = os.path.join(base_folder_directory, desired_folder_directory)
+            if not os.path.exists(desired_folder):
+                os.makedirs(desired_folder)
+
             rule_id = str(uuid.uuid4())
             rule = {
                 "id": rule_id,
                 "base_folder_directory": base_folder_directory,
+                "desired_folder_directory": desired_folder,
                 "folder_name": folder_name,
                 "full_path": target_folder,
                 "extensions": extensions,
@@ -415,37 +422,19 @@ class TaskAPI:
             return True
         return False
     
-    def organize_files(misplaced_files, rules):
-        """
-        When we add an organization rule, here are the following params we're passing in:
+    def organize_files(misplaced_files):
 
-        1) File directory (the file we want our organized files to be in)
-        2) File type category (what type of files should be in that folder)
-        
-        """
+        try:
+            for file in misplaced_files:
+                source_path = file['source_path']
+                destination_path = file['destination_path']
 
-        """
-        Scanning process (we scan the folder for misplaced files):
+                os.makedirs(os.path.dirname(destination_path), exist_ok=True)
 
-        1) First, we need to find all of the misplaced files.
-        2) This scanning function takes in "rules" and basically scan our directory for file extensions
-        [file_category] that should be in [file_directory] and then highlight it and pass it as misplaced_files
-        3) Refect misplaced_files through frontend by highlighting them red
-
-        This scanning process will give users a preview of the misplaced files.
-
-        """
-
-        """
-        Organize process 
-
-        1) Create backup of current folder directory
-        2) Ask for confirmation
-        3) Then we're going to call organize_files
-        
-        """
-        
-        def move_file(source_path, destination_folder):
-            pass
-        
-        pass
+                shutil.move(source_path, destination_path)
+            
+            return True
+        except Exception as e:
+            print(f"There has an error in misplaced_files: {e}")
+            return False
+            

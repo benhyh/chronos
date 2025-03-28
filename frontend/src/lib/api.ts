@@ -14,13 +14,21 @@ export interface FileSystemItem {
   type: "file" | "folder";
   path?: string;
   size?: string ;
-  extension?: string;
+  extension: string;
   children?: FileSystemItem[];
+}
+
+export interface MisplacedFile extends FileSystemItem {
+  current_folder: string;
+  correct_folder: string;
+  source_path: string;
+  destination_path: string;
 }
 
 export interface OrganizationRule {
   id: string;
   base_folder_directory: string;
+  desired_folder_directory: string;
   folder_name: string;
   full_path: string;
   extensions: string[];
@@ -33,7 +41,7 @@ const isPyWebViewAvailable = (): boolean => {
           window.pywebview.api !== undefined;
 }
   
-type PyWebViewApiArgs = string | number | boolean | null | undefined | Record<string, unknown> | string[];
+type PyWebViewApiArgs = string | number | boolean | null | undefined | Record<string, unknown> | string[] | MisplacedFile[];
 
 const callPythonApi = async (method: string, ...args: PyWebViewApiArgs[]) => {
   if (!isPyWebViewAvailable()) {
@@ -99,11 +107,18 @@ export const api = {
   add_organization_rule: async(
     base_folder_directory: string,
     folder_name: string,
+    desired_folder_directory: string,
     extensions: string[]
   ): Promise<OrganizationRule> => {
-    return await callPythonApi('add_organization_rule', base_folder_directory, folder_name, extensions);
+    return await callPythonApi('add_organization_rule', base_folder_directory, folder_name, desired_folder_directory, extensions);
   },
-
+  
+  organize_files: async(
+    misplaced_files: MisplacedFile[],
+  ): Promise<boolean> => {
+    return await callPythonApi('organize_files', misplaced_files) || false;
+  }
+  
 };
 
 // Map status string to status code for API calls
