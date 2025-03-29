@@ -3,7 +3,6 @@ import { Sidebar } from "./components/Sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TaskManager from "./components/TaskManager";
 import Files from "./components/Files";
-import Settings from "./components/Settings";
 
 export default function App() {
   return (
@@ -13,7 +12,7 @@ export default function App() {
         <div className="mx-auto max-w-6xl">
           <h1 className="mb-6 text-3xl font-bold tracking-normal">Task & Folder Manager</h1>
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger 
                 value="dashboard" 
               >
@@ -29,11 +28,7 @@ export default function App() {
               >
                 Files
               </TabsTrigger>
-              <TabsTrigger 
-                value="settings"
-              >
-                Settings
-              </TabsTrigger>
+
             </TabsList>
 
             <TabsContent value="dashboard">
@@ -48,9 +43,6 @@ export default function App() {
               <Files />
             </TabsContent>
 
-            <TabsContent value="settings">
-              <Settings />
-            </TabsContent>
           </Tabs>
         </div>
       </main>

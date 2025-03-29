@@ -34,6 +34,9 @@ import {
   ChevronDown,
   Plus,
   AlertCircle,
+  Pencil,
+  Circle,
+  CircleX,
 } from "lucide-react"
 import { api, FileSystemItem } from "../lib/api"
 
@@ -64,7 +67,6 @@ interface MisplacedFile extends FileSystemItem {
   icon?: JSX.Element;
 }
 
-// Update FileSystemItem type to include icon property
 interface EnhancedFileSystemItem extends FileSystemItem {
   icon?: JSX.Element;
 }
@@ -130,6 +132,7 @@ export default function FileOrganizer() {
   const [searchQuery, setSearchQuery] = useState("")
   const [organizationRules, setOrganizationRules] = useState<OrganizationRule[]>([])
   const [showRuleDialog, setShowRuleDialog] = useState(false)
+  const [showEditRuleDialog, setShowEditRuleDialog] = useState(false)
   const [newRule, setNewRule] = useState({
     folder_name: "",
     desired_folder_path: "",
@@ -212,39 +215,43 @@ export default function FileOrganizer() {
   const findMisplacedFiles = (contents: FileSystemItem[], rules: OrganizationRule[]): void => {
     const misplaced: MisplacedFile[] = []
 
-    // Step 1: Create a recursive helper function to scan folders
+    // Helper function to check if a file should be in a different folder
+    const checkFileLocation = (file: FileSystemItem, currentFolder: string) => {
+      if (file.type === "file" && file.extension) {
+        const matchingRule = rules.find(r => r.enabled && r.extensions.includes(file.extension))
+        if (matchingRule && currentFolder !== matchingRule.folder_name) {
+          return {
+            ...file,
+            current_folder: currentFolder,
+            correct_folder: matchingRule.folder_name,
+            source_path: file.path || '',
+            destination_path: `${matchingRule.full_path}/${file.name}`
+          }
+        }
+      }
+      return null
+    }
+
+    // Recursive function to scan folders
     const scanFolderRecursively = (folder: FileSystemItem, currentPath: string): MisplacedFile[] => {
       const folderMisplaced: MisplacedFile[] = []
 
-      // Step 2: Check if current folder matches any organization rule
-      const matchingRule = rules.find((r) => r.folder_name === folder.name && r.enabled)
-
-      // Step 3: If there's a matching rule, check files in current folder
-      if (matchingRule && folder.children) {
-        folder.children.forEach((item) => {
+      // Check files in current folder
+      if (folder.children) {
+        folder.children.forEach(item => {
           if (item.type === "file") {
-            // Check if file extension doesn't match the rule
-            if (item.extension && !matchingRule.extensions.includes(item.extension)) {
-              const correctRule = rules.find((r) => r.enabled && r.extensions.includes(item.extension));
-              if (correctRule) {
-                folderMisplaced.push({
-                  ...item,
-                  current_folder: folder.name,
-                  correct_folder: correctRule.folder_name,
-                  source_path: item.path || '',
-                  destination_path: correctRule.full_path
-                })
-              }
+            const misplacedFile = checkFileLocation(item, folder.name)
+            if (misplacedFile) {
+              folderMisplaced.push(misplacedFile as MisplacedFile)
             }
           }
         })
       }
 
-      // Step 4: Recursively scan all subfolders
+      // Recursively check subfolders
       if (folder.children) {
-        folder.children.forEach((item) => {
+        folder.children.forEach(item => {
           if (item.type === "folder") {
-            // Recursive call for each subfolder
             const subfolderMisplaced = scanFolderRecursively(item, `${currentPath}/${item.name}`)
             folderMisplaced.push(...subfolderMisplaced)
           }
@@ -254,28 +261,52 @@ export default function FileOrganizer() {
       return folderMisplaced
     }
 
-    // Step 5: Start recursive scanning from each top-level folder
-    contents.forEach((folder) => {
+    // Start scanning from each top-level folder
+    contents.forEach(folder => {
       if (folder.type === "folder") {
         const folderMisplaced = scanFolderRecursively(folder, folder.name)
         misplaced.push(...folderMisplaced)
       }
     })
 
-    // Step 6: Update the state with all misplaced files
     setMisplacedFiles(misplaced)
   }
 
-  // Function to find the correct folder for a file based on its extension
-  const findCorrectFolder = (extension: string | undefined, rules: OrganizationRule[]): string => {
-    if (!extension) return "Unknown";
-    
-    for (const rule of rules) {
-      if (rule.enabled && rule.extensions.includes(extension)) {
-        return rule.folder_name
-      }
+  // Function to handle adding a new organization rule
+  const handleAddRule = async () => {
+    if (!selectedFolder || !newRule.folder_name || newRule.extensions.length === 0) {
+      return
     }
-    return "Unknown"
+
+    try {
+      // Add the organization rule
+      const result = await api.add_organization_rule(
+        selectedFolder,
+        newRule.folder_name,
+        newRule.desired_folder_path,
+        newRule.extensions,
+      )
+
+      if (result) {
+        // Update organization rules
+        const updatedRules = [...organizationRules, result];
+        setOrganizationRules(updatedRules);
+        
+        // Reset the form and close dialog
+        setNewRule({ folder_name: "", desired_folder_path: "", extensions: [] });
+        setShowRuleDialog(false);
+        
+        // Re-check for misplaced files with all rules including the new one
+        if (folderContents.length > 0) {
+          findMisplacedFiles(folderContents, updatedRules);
+        }
+        
+      } else {
+        console.error("Failed to add organization rule.");
+      }
+    } catch (error) {
+      console.error("Error adding organization rule:", error);
+    }
   }
 
   // Function to toggle folder expansion
@@ -367,38 +398,6 @@ export default function FileOrganizer() {
     })
 
     setFolderContents(newContents)
-  }
-
-  // Function to handle adding a new organization rule
-  const handleAddRule = async () => {
-    if (!selectedFolder ||!newRule.folder_name || newRule.extensions.length === 0) {
-      return
-    }
-
-    try {
-      const result = await api.add_organization_rule(
-        selectedFolder,
-        newRule.folder_name,
-        newRule.desired_folder_path,
-        newRule.extensions,
-      )
-
-      if (result) {
-
-        setOrganizationRules([...organizationRules, result])
-        setNewRule({folder_name: "", desired_folder_path: "", extensions: [] })
-        setShowRuleDialog(false)
-      } else {
-        console.log("Does not work.");
-      }
-  
-      // Re-check for misplaced files with the new rule
-      if (folderContents.length > 0) {
-        findMisplacedFiles(folderContents, [...organizationRules, result])
-      }
-    } catch (error) {
-      console.log(`There has been a n error in adding a new rule: ${error}`);
-    }
   }
 
   // Function to toggle a rule's enabled state
@@ -663,8 +662,12 @@ export default function FileOrganizer() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {setShowEditRuleDialog(true); setShowRuleDialog(true)}}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => toggleRuleEnabled(rule.id)}>
-                                {rule.enabled ? "Disable" : "Enable"}
+                                {rule.enabled ? <><Circle className="mr-2 h-4 w-4" />Disable</> : <><CircleX className="mr-2 h-4 w-4" />Enable</>}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => deleteRule(rule.id)}>
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -704,26 +707,21 @@ export default function FileOrganizer() {
       <Dialog open={showRuleDialog} onOpenChange={setShowRuleDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Organization Rule</DialogTitle>
+            {showEditRuleDialog == true ? (
+              <DialogTitle>Edit Organization Rule</DialogTitle>
+            ) : (
+              <DialogTitle>Add Organization Rule</DialogTitle>
+            )}
             <DialogDescription>Define which file types belong in which folder</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="folder-name">Selected Folder Directory</Label>
+              <Label htmlFor="folder-name">Folder Name</Label>
               <Input
                 id="folder-name"
-                placeholder={selectedFolder ? `${normalizePath(selectedFolder)}/` : "Select a folder first"}
+                placeholder="Enter folder name"
                 value={newRule.folder_name}
                 onChange={(e) => setNewRule({ ...newRule, folder_name: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="folder-name">Desired Folder Directory</Label>
-              <Input
-                id="folder-name"
-                placeholder={selectedFolder ? `${normalizePath(selectedFolder)}/` : "Select a folder first"}
-                value={newRule.desired_folder_path}
-                onChange={(e) => setNewRule({ ...newRule, desired_folder_path: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
@@ -780,4 +778,3 @@ export default function FileOrganizer() {
     </div>
   )
 }
-

@@ -422,19 +422,23 @@ class TaskAPI:
             return True
         return False
     
-    def organize_files(misplaced_files):
-
+    def organize_files(self, misplaced_files):
+        """Organize files by moving them to their correct folders"""
         try:
             for file in misplaced_files:
                 source_path = file['source_path']
-                destination_path = file['destination_path']
-
+                destination_path = os.path.join(
+                    os.path.dirname(file['destination_path']),
+                    file['name']
+                )
+                
+                # Create the destination directory if it doesn't exist
                 os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-
+                
+                # Move the file
                 shutil.move(source_path, destination_path)
             
             return True
         except Exception as e:
-            print(f"There has an error in misplaced_files: {e}")
+            print(f"Error in organize_files: {e}")
             return False
-            
