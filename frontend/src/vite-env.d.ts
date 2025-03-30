@@ -45,6 +45,21 @@ interface Window {
           destination_path: string;
         }>) => Promise<boolean>;
     };
+        update_organization_rule: (
+          rule_id: string,
+          base_folder_directory: string,
+          folder_name: string,
+          desired_folder_directory: string,
+          extensions: string[]
+        ) => Promise<{
+          id: string;
+          base_folder_directory: string;
+          desired_folder_directory: string;
+          folder_name: string;
+          extensions: string[],
+          full_path: string;
+          enabled: boolean;
+        }>
  };
 }
 

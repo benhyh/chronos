@@ -138,7 +138,8 @@ export default function FileOrganizer() {
     desired_folder_path: "",
     extensions: [] as string[],
   })
-  const [misplacedFiles, setMisplacedFiles] = useState<MisplacedFile[]>([])
+  const [misplacedFiles, setMisplacedFiles] = useState<MisplacedFile[]>([]);
+  const [editingRule, setEditingRule] = useState<OrganizationRule | null>(null);
 
   const handleSelectFolder = async () => {
     try {
@@ -428,6 +429,60 @@ export default function FileOrganizer() {
     }
   }
 
+  const handleEditRule = (ruleId: string) => {
+    const ruleToEdit = organizationRules.find(rule => rule.id === ruleId);
+    if (ruleToEdit) {
+      setEditingRule(ruleToEdit);
+      setNewRule({
+        folder_name: ruleToEdit.folder_name,
+        desired_folder_path: ruleToEdit.desired_folder_directory,
+        extensions: ruleToEdit.extensions,
+      })
+    }
+    setShowEditRuleDialog(true);
+    setShowRuleDialog(true);
+  }
+
+  const handleUpdateRule = async () => {
+    if (!editingRule || !selectedFolder || !newRule.folder_name || newRule.extensions.length === 0) {
+      return;
+    } 
+
+    try {
+      const result = await api.update_organization_rule(
+        editingRule.id,
+        selectedFolder,
+        newRule.folder_name,
+        newRule.desired_folder_path,
+        newRule.extensions,
+      );
+    
+      if (result) {
+        
+        const updatedRules = organizationRules.map(rule =>
+          rule.id === editingRule.id ? result: rule
+        );
+        setOrganizationRules(updatedRules);
+
+        setEditingRule(null);
+        setNewRule({ folder_name: "", desired_folder_path: "", extensions: []});
+        setShowEditRuleDialog(false);
+        setShowRuleDialog(false);
+
+        if (folderContents.length > 0) {
+          findMisplacedFiles(folderContents, updatedRules)
+        }
+
+      } else {
+        console.log("We couldn't update the rule. Please try again.")
+        return;
+      }
+
+    } catch (error) {
+      console.error("Error updating organizaiton rule: ", error);
+    }
+  }
+
   // Function to render the file tree
   const renderFileTree = (items: EnhancedFileSystemItem[], level = 0) => {
     return items.map((item) => (
@@ -662,7 +717,7 @@ export default function FileOrganizer() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {setShowEditRuleDialog(true); setShowRuleDialog(true)}}>
+                              <DropdownMenuItem onClick={() => handleEditRule(rule.id)}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 <span>Edit</span>
                               </DropdownMenuItem>
@@ -704,7 +759,13 @@ export default function FileOrganizer() {
       </Tabs>
       )}
 
-      <Dialog open={showRuleDialog} onOpenChange={setShowRuleDialog}>
+      <Dialog open={showRuleDialog} onOpenChange={(open) => {
+        setShowRuleDialog(open);
+        if (!open) {
+          setShowEditRuleDialog(false);
+          setNewRule({ folder_name: "", desired_folder_path: "", extensions: [] })
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             {showEditRuleDialog == true ? (
@@ -769,9 +830,15 @@ export default function FileOrganizer() {
             <Button variant="outline" onClick={() => setShowRuleDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
-              Add Rule
-            </Button>
+            {showEditRuleDialog == true ? (
+              <Button onClick={handleUpdateRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
+                Edit Rule
+              </Button>
+            ) : (
+              <Button onClick={handleAddRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
+                Add Rule
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
