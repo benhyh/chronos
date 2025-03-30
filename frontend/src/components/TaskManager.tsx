@@ -199,27 +199,27 @@ export default function TaskManager() {
     <div className="h-full overflow-hidden">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
     <div>
-          <h2 className="text-2xl font-bold tracking-tight">Task Manager</h2>
-          <p className="text-gray-500">
+          <h2 className="text-2xl font-bold tracking-tight dark:text-white">Task Manager</h2>
+          <p className="text-gray-500 dark:text-gray-400">
             Create, manage, and track your tasks
           </p>
         </div>
         <Dialog open={newTaskDialogOpen} onOpenChange={setNewTaskDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-1">
+            <Button className="flex items-center gap-1 dark:bg-white dark:text-black">
               <PlusCircle className="h-4 w-4" />
               <span>New Task</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] dark:bg-gray-800 dark:border-gray-700">
             <DialogHeader>
-              <DialogTitle>Create New Task</DialogTitle>
-              <DialogDescription>Add a new task to your list</DialogDescription>
+              <DialogTitle className="dark:text-white">Create New Task</DialogTitle>
+              <DialogDescription className="dark:text-gray-400">Add a new task to your list</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateTask}>
               <div className="py-4 space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="title">Task Title</Label>
+                  <Label htmlFor="title" className="dark:text-gray-300">Task Title</Label>
                   <Input 
                     id="title" 
                     name="title"
@@ -227,21 +227,23 @@ export default function TaskManager() {
                     value={formData.title}
                     onChange={handleInputChange}
                     required
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="dark:text-gray-300">Description</Label>
                   <Textarea 
                     id="description" 
                     name="description"
                     placeholder="Enter task description" 
                     value={formData.description}
                     onChange={handleInputChange}
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="grid gap-2">
-                    <Label htmlFor="priority">Priority</Label>
+                    <Label htmlFor="priority" className="dark:text-gray-300">Priority</Label>
                     <Select 
                       defaultValue="1"
                       value={formData.priority.toString()}
@@ -252,18 +254,18 @@ export default function TaskManager() {
                         }))
                       }}
                     >
-                      <SelectTrigger id="priority">
+                      <SelectTrigger id="priority" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3">High</SelectItem>
-                        <SelectItem value="2">Medium</SelectItem>
-                        <SelectItem value="1">Low</SelectItem>
+                      <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                        <SelectItem value="3" className="dark:text-white dark:focus:bg-gray-700">High</SelectItem>
+                        <SelectItem value="2" className="dark:text-white dark:focus:bg-gray-700">Medium</SelectItem>
+                        <SelectItem value="1" className="dark:text-white dark:focus:bg-gray-700">Low</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="status">Status</Label>
+                    <Label htmlFor="status" className="dark:text-gray-300">Status</Label>
                     <Select
                       defaultValue="0"
                       value={formData.status.toString()}
@@ -274,18 +276,18 @@ export default function TaskManager() {
                         }))
                       }}
                     >
-                      <SelectTrigger id="status">
+                      <SelectTrigger id="status" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">Pending</SelectItem>
-                        <SelectItem value="1">In Progress</SelectItem>
-                        <SelectItem value="2">Completed</SelectItem>
+                      <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                        <SelectItem value="0" className="dark:text-white dark:focus:bg-gray-700">Pending</SelectItem>
+                        <SelectItem value="1" className="dark:text-white dark:focus:bg-gray-700">In Progress</SelectItem>
+                        <SelectItem value="2" className="dark:text-white dark:focus:bg-gray-700">Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="dueDate">Due Date</Label>
+                    <Label htmlFor="dueDate" className="dark:text-gray-300">Due Date</Label>
                     <Input 
                       id="dueDate" 
                       name="dueDate"
@@ -293,12 +295,13 @@ export default function TaskManager() {
                       value={formData.dueDate}
                       onChange={handleInputChange}
                       required
+                      className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                   </div>
                 </div>
               </div>
               <DialogFooter className="flex justify-end">
-                <Button type="submit">Create Task</Button>
+                <Button type="submit" className="dark:bg-white dark:text-black">Create Task</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -306,10 +309,10 @@ export default function TaskManager() {
       </div>
 
       <Dialog open={editTaskDialogOpen} onOpenChange={setEditTaskDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Edit Task</DialogTitle>
-            <DialogDescription>Update task details</DialogDescription>
+            <DialogTitle className="dark:text-white">Edit Task</DialogTitle>
+            <DialogDescription className="dark:text-gray-400">Update task details</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateTask}>
             <div className="py-4 space-y-4">
@@ -399,43 +402,53 @@ export default function TaskManager() {
 
       <div className="h-[calc(100%-60px)] overflow-y-auto pb-4">
         {loading ? (
-          <div className="flex justify-center p-8">Loading tasks...</div>
+          <div className="flex justify-center p-8 dark:text-white">Loading tasks...</div>
         ) : error ? (
-          <div className="flex justify-center p-8 text-red-500">{error}</div>
+          <div className="flex justify-center p-8 text-red-500">
+            {error}
+          </div>
         ) : (
           <>
             <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
                 <Input
                   placeholder="Search tasks..."
-                  className="pl-8 pb-3"
+                  className="pl-8 pb-3 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder:text-gray-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Select defaultValue="all">
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
                     <SelectValue placeholder="Filter" />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tasks</SelectItem>
-                  <SelectItem value="high">High Priority</SelectItem>
-                  <SelectItem value="medium">Medium Priority</SelectItem>
-                  <SelectItem value="low">Low Priority</SelectItem>
+                <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                  <SelectItem value="all" className="dark:text-white dark:focus:bg-gray-700">All Tasks</SelectItem>
+                  <SelectItem value="high" className="dark:text-white dark:focus:bg-gray-700">High Priority</SelectItem>
+                  <SelectItem value="medium" className="dark:text-white dark:focus:bg-gray-700">Medium Priority</SelectItem>
+                  <SelectItem value="low" className="dark:text-white dark:focus:bg-gray-700">Low Priority</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">All ({filteredTasks.length})</TabsTrigger>
-                <TabsTrigger value="pending">Pending ({pendingTasks.length})</TabsTrigger>
-                <TabsTrigger value="in-progress">In Progress ({inProgressTasks.length})</TabsTrigger>
-                <TabsTrigger value="completed">Completed ({completedTasks.length})</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 dark:bg-gray-800">
+                <TabsTrigger value="all" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white">
+                  All ({filteredTasks.length})
+                </TabsTrigger>
+                <TabsTrigger value="pending" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white">
+                  Pending ({pendingTasks.length})
+                </TabsTrigger>
+                <TabsTrigger value="in-progress" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white">
+                  In Progress ({inProgressTasks.length})
+                </TabsTrigger>
+                <TabsTrigger value="completed" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white">
+                  Completed ({completedTasks.length})
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="all" className="mt-4">
@@ -475,16 +488,16 @@ export default function TaskManager() {
               </TabsContent>
             </Tabs>
 
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Create New Task</CardTitle>
-                <CardDescription>Add a new task to your list</CardDescription>
+            <Card className="mt-6 dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader className="dark:border-gray-700">
+                <CardTitle className="dark:text-white">Create New Task</CardTitle>
+                <CardDescription className="dark:text-gray-400">Add a new task to your list</CardDescription>
               </CardHeader>
               <form onSubmit={handleCreateTask}>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="title">Task Title</Label>
+                      <Label htmlFor="title" className="dark:text-gray-300">Task Title</Label>
                       <Input 
                         id="title" 
                         name="title"
@@ -492,21 +505,23 @@ export default function TaskManager() {
                         value={formData.title}
                         onChange={handleInputChange}
                         required
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-500"
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="description" className="dark:text-gray-300">Description</Label>
                       <Textarea 
                         id="description" 
                         name="description"
                         placeholder="Enter task description" 
                         value={formData.description}
                         onChange={handleInputChange}
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-500"
                       />
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <div className="grid gap-2">
-                        <Label htmlFor="priority">Priority</Label>
+                        <Label htmlFor="priority" className="dark:text-gray-300">Priority</Label>
                         <Select 
                           defaultValue="1"
                           value={formData.priority.toString()}
@@ -517,18 +532,18 @@ export default function TaskManager() {
                             }))
                           }}
                         >
-                          <SelectTrigger id="priority">
+                          <SelectTrigger id="priority" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="3">High</SelectItem>
-                            <SelectItem value="2">Medium</SelectItem>
-                            <SelectItem value="1">Low</SelectItem>
+                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                            <SelectItem value="3" className="dark:text-white dark:focus:bg-gray-700">High</SelectItem>
+                            <SelectItem value="2" className="dark:text-white dark:focus:bg-gray-700">Medium</SelectItem>
+                            <SelectItem value="1" className="dark:text-white dark:focus:bg-gray-700">Low</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="status">Status</Label>
+                        <Label htmlFor="status" className="dark:text-gray-300">Status</Label>
                         <Select
                           defaultValue="0"
                           value={formData.status.toString()}
@@ -539,18 +554,18 @@ export default function TaskManager() {
                             }))
                           }}
                         >
-                          <SelectTrigger id="status">
+                          <SelectTrigger id="status" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">Pending</SelectItem>
-                            <SelectItem value="1">In Progress</SelectItem>
-                            <SelectItem value="2">Completed</SelectItem>
+                          <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                            <SelectItem value="0" className="dark:text-white dark:focus:bg-gray-700">Pending</SelectItem>
+                            <SelectItem value="1" className="dark:text-white dark:focus:bg-gray-700">In Progress</SelectItem>
+                            <SelectItem value="2" className="dark:text-white dark:focus:bg-gray-700">Completed</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="dueDate">Due Date</Label>
+                        <Label htmlFor="dueDate" className="dark:text-gray-300">Due Date</Label>
                         <Input 
                           id="dueDate" 
                           name="dueDate"
@@ -558,13 +573,14 @@ export default function TaskManager() {
                           value={formData.dueDate}
                           onChange={handleInputChange}
                           required
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                       </div>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-end">
-                  <Button type="submit">Create Task</Button>
+                <CardFooter className="flex justify-end dark:border-gray-700">
+                  <Button type="submit" className="dark:bg-white dark:text-black">Create Task</Button>
                 </CardFooter>
               </form>
             </Card>
@@ -588,10 +604,10 @@ function TaskList({
 }) {
   if (tasks.length === 0) {
     return (
-      <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
+      <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed dark:border-gray-700">
         <div className="text-center">
-          <h3 className="text-lg font-medium">No tasks found</h3>
-          <p className="text-sm text-gray-500">Create a new task or change your search criteria.</p>
+          <h3 className="text-lg font-medium dark:text-white">No tasks found</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Create a new task or change your search criteria.</p>
         </div>
       </div>
     )
@@ -600,7 +616,7 @@ function TaskList({
   return (
     <div className="space-y-4">
       {tasks.map((task) => (
-        <Card key={task.id} className="overflow-hidden">
+        <Card key={task.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700">
           <div
             className={`h-1 w-full ${
               task.priority === 3 ? "bg-red-500" : task.priority === 2 ? "bg-amber-500" : "bg-green-500"
@@ -619,10 +635,11 @@ function TaskList({
                       onStatusChange(task.id, 0); // 0 = Pending
                     }
                   }}
+                  className="dark:border-gray-600"
                 />
                 <div>
-                  <h3 className="font-medium">{task.title}</h3>
-                  <p className="text-sm text-gray-500">{task.description}</p>
+                  <h3 className="font-medium dark:text-white">{task.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{task.description}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <Badge
                       className={
@@ -649,7 +666,7 @@ function TaskList({
                       {task.status === "Pending" && <AlertCircle className="mr-1 h-3 w-3" />}
                       {task.status}
                     </Badge>
-                    {task.due_date && <span className="text-xs text-gray-500">Due: {task.due_date}</span>}
+                    {task.due_date && <span className="text-xs text-gray-500 dark:text-gray-400">Due: {task.due_date}</span>}
                   </div>
                 </div>
               </div>
@@ -660,26 +677,27 @@ function TaskList({
                     onStatusChange(task.id, parseInt(value));
                   }}
                 >
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[140px] dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     <SelectValue placeholder="Change Status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Pending</SelectItem>
-                    <SelectItem value="1">In Progress</SelectItem>
-                    <SelectItem value="2">Completed</SelectItem>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
+                    <SelectItem value="0" className="dark:text-white dark:focus:bg-gray-700">Pending</SelectItem>
+                    <SelectItem value="1" className="dark:text-white dark:focus:bg-gray-700">In Progress</SelectItem>
+                    <SelectItem value="2" className="dark:text-white dark:focus:bg-gray-700">Completed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => onEdit(task)}
+                  className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
                 >
                   Edit
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                  className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:border-gray-600 dark:hover:bg-red-900/20"
                   onClick={() => onDelete(task.id)}
                 >
                   Delete

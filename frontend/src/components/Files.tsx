@@ -460,7 +460,7 @@ export default function FileOrganizer() {
       if (result) {
         
         const updatedRules = organizationRules.map(rule =>
-          rule.id === editingRule.id ? result: rule
+          rule.id === editingRule.id ? result : rule
         );
         setOrganizationRules(updatedRules);
 
@@ -490,18 +490,18 @@ export default function FileOrganizer() {
         {item.type === "folder" ? (
           <div>
             <div
-              className="flex items-center py-1 px-2 hover:bg-gray-100 rounded cursor-pointer"
+              className="flex items-center py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
               style={{ paddingLeft: `${level * 16 + 8}px` }}
               onClick={() => toggleFolderExpand(item.id)}
             >
               {expandedFolders.includes(item.id) ? (
-                <ChevronDown className="h-4 w-4 text-gray-500 mr-1" />
+                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-gray-500 mr-1" />
+                <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" />
               )}
               <FolderOpen className="h-5 w-5 text-amber-500 mr-2" />
-              <span className="text-sm font-medium">{item.name}</span>
-              <span className="ml-auto text-xs text-gray-500">
+              <span className="text-sm font-medium dark:text-white">{item.name}</span>
+              <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
                 {item.children && item.children.length ? `${item.children.length} ${item.children.length === 1 ? "item" : "items"}` : "0 items"}
               </span>
             </div>
@@ -511,14 +511,14 @@ export default function FileOrganizer() {
           </div>
         ) : (
           <div
-            className={`flex items-center py-1 px-2 hover:bg-gray-100 rounded cursor-pointer ${
-              misplacedFiles.some((f) => f.id === item.id) ? "bg-red-50" : ""
+            className={`flex items-center py-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer ${
+              misplacedFiles.some((f) => f.id === item.id) ? "bg-red-50 dark:bg-red-900/20" : ""
             }`}
             style={{ paddingLeft: `${level * 16 + 28}px` }}
           >
-            {item.icon ? item.icon : <FileText className="h-4 w-4 text-gray-500" />}
-            <span className="ml-2 text-sm">{item.name}</span>
-            <span className="ml-auto text-xs text-gray-500">{item.size}</span>
+            {item.icon ? item.icon : <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+            <span className="ml-2 text-sm dark:text-white">{item.name}</span>
+            <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">{item.size}</span>
           </div>
         )}
       </div>
@@ -536,17 +536,18 @@ export default function FileOrganizer() {
     <div className="space-y-6">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">File Organizer</h2>
-          <p className="text-muted-foreground">Organize your files by type and category</p>
+          <h2 className="text-2xl font-bold tracking-tight dark:text-white">File Organizer</h2>
+          <p className="text-muted-foreground dark:text-gray-400">Organize your files by type and category</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleSelectFolder}>
+          <Button variant="outline" onClick={handleSelectFolder} className="dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700">
             <FolderOpen className="mr-2 h-4 w-4" />
             Select Folder
           </Button>
           <Button
             onClick={handleOrganizeFiles}
             disabled={!selectedFolder || misplacedFiles.length === 0 || isOrganizing}
+            className="dark:bg-white dark:text-black"
           >
             {isOrganizing ? (
               <>
@@ -561,95 +562,86 @@ export default function FileOrganizer() {
       </div>
 
       {!selectedFolder ? (
-        <div className="flex h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 border-gray-300">
-          <FolderOpen className="mb-4 h-10 w-10 text-gray-400" />
-          <p className="mb-2 text-center text-lg font-medium">Select a folder to organize</p>
-          <p className="mb-4 text-center text-sm text-gray-500">Choose a folder to scan and organize its contents</p>
-          <Button onClick={handleSelectFolder}>Select Folder</Button>
+        <div className="flex h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 border-gray-300 dark:border-gray-700">
+          <FolderOpen className="mb-4 h-10 w-10 text-gray-400 dark:text-gray-600" />
+          <p className="mb-2 text-center text-lg font-medium dark:text-white">Select a folder to organize</p>
+          <p className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">Choose a folder to scan and organize its contents</p>
+          <Button onClick={handleSelectFolder} className="dark:bg-white dark:text-black">Select Folder</Button>
         </div>
       ) : isScanning ? (
-        <Card>
+        <Card className="dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex flex-col items-center justify-center py-8">
-              <RefreshCw className="mb-4 h-10 w-10 text-gray-400 animate-spin" />
-              <p className="mb-2 text-center text-lg font-medium">Scanning folder...</p>
-              <p className="mb-4 text-center text-sm text-gray-500">This may take a moment</p>
+              <RefreshCw className="mb-4 h-10 w-10 text-gray-400 dark:text-gray-600 animate-spin" />
+              <p className="mb-2 text-center text-lg font-medium dark:text-white">Scanning folder...</p>
+              <p className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">This may take a moment</p>
             </div>
           </CardContent>
         </Card>
       ) : folderContents.length === 0 ? (
-        <Card>
+        <Card className="dark:bg-gray-800 dark:border-gray-700">
           <CardContent className="p-6">
             <div className="flex flex-col items-center justify-center py-8">
-              <AlertCircle className="mb-4 h-10 w-10 text-gray-400" />
-              <p className="mb-2 text-center text-lg font-medium">No files found</p>
-              <p className="mb-4 text-center text-sm text-gray-500">Please select a different folder to scan!</p>
+              <AlertCircle className="mb-4 h-10 w-10 text-gray-400 dark:text-gray-600" />
+              <p className="mb-2 text-center text-lg font-medium dark:text-white">No files found</p>
+              <p className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">Please select a different folder to scan!</p>
               <Button onClick={handleSelectFolder}>Select Different Folder</Button>
             </div>
           </CardContent>
         </Card>
       ) : (
       <Tabs defaultValue="file-explorer" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="file-explorer">File Explorer</TabsTrigger>
-          <TabsTrigger value="rules">Organization Rules</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 dark:bg-gray-800">
+          <TabsTrigger value="file-explorer" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white">File Explorer</TabsTrigger>
+          <TabsTrigger value="rules" className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white">Organization Rules</TabsTrigger>
         </TabsList>
 
         <TabsContent value="file-explorer">
-          <Card>
-            <CardHeader>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader className="dark:border-gray-700">
               <div className="flex items-center justify-between">
-                  <CardTitle>Folder Contents</CardTitle>
+                  <CardTitle className="dark:text-white">Folder Contents</CardTitle>
                 <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                    <Input
-                      placeholder="Search files..."
-                      className="pl-8 pb-3 w-[200px]"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                    <Button variant="outline" size="sm" onClick={() => scanFolder(selectedFolder)}>
+                    <Button variant="outline" size="sm" onClick={() => scanFolder(selectedFolder)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600">
                     <RefreshCw className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-                <CardDescription>
+                <CardDescription className="dark:text-gray-400">
                   {selectedFolder ? normalizePath(selectedFolder) : ""}
                   {misplacedFiles.length > 0 && (
-                    <Badge variant="outline" className="ml-2 bg-red-50 text-red-600 border border-gray-200/50">
+                    <Badge variant="outline" className="ml-2 bg-red-50 text-red-600 border border-gray-200/50 dark:bg-red-900/20 dark:text-red-400">
                       {misplacedFiles.length} misplaced files
                     </Badge>
                   )}
                 </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border border-gray-300">
-                  <div className="p-3 max-h-[400px] overflow-y-auto">{renderFileTree(folderContents)}</div>
+              <div className="rounded-md border border-gray-300 dark:border-gray-700">
+                  <div className="p-3 max-h-[400px] overflow-y-auto dark:text-white">{renderFileTree(folderContents)}</div>
                 </div>
 
                 {misplacedFiles.length > 0 && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-3">Misplaced Files</h3>
-                    <div className="rounded-lg border border-gray-300">
-                      <div className="flex items-center justify-between border-b border-gray-300 p-3 bg-gray-50">
-                        <span className="font-medium">File Name</span>
+                    <h3 className="text-lg font-medium mb-3 dark:text-white">Misplaced Files</h3>
+                    <div className="rounded-lg border border-gray-300 dark:border-gray-700">
+                      <div className="flex items-center justify-between border-b border-gray-300 p-3 bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                        <span className="font-medium dark:text-white">File Name</span>
                         <div className="flex items-center space-x-4">
-                          <span className="text-sm text-gray-500">Current Location</span>
-                          <span className="text-sm text-gray-500">Should Be In</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Current Location</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Should Be In</span>
               </div>
               </div>
                       <div className="max-h-[200px] overflow-y-auto">
                         {misplacedFiles.map((file) => (
-                          <div key={file.id} className="flex items-center justify-between border-b border-gray-300 p-3 bg-red-50">
+                          <div key={file.id} className="flex items-center justify-between border-b border-gray-300 p-3 bg-red-50 dark:bg-red-900/20 dark:border-gray-700">
                             <div className="flex items-center space-x-2">
                               {file.icon}
-                              <span className="text-sm">{file.name}</span>
+                              <span className="text-sm dark:text-white">{file.name}</span>
               </div>
                     <div className="flex items-center space-x-4">
-                              <span className="text-sm text-gray-500 w-32 text-right">{file.current_folder}</span>
-                              <span className="text-sm font-medium w-32 text-right">{file.correct_folder}</span>
+                              <span className="text-sm text-gray-500 w-32 text-right dark:text-gray-400">{file.current_folder}</span>
+                              <span className="text-sm font-medium w-32 text-right dark:text-white">{file.correct_folder}</span>
                             </div>
                           </div>
                         ))}
@@ -658,7 +650,7 @@ export default function FileOrganizer() {
 
                     {isOrganizing && (
                       <div className="mt-4 flex items-center space-x-4">
-                        <span className="text-sm">{organizingProgress}% complete</span>
+                        <span className="text-sm dark:text-white">{organizingProgress}% complete</span>
                         <Progress value={organizingProgress} className="flex-1 h-2" />
                       </div>
                     )}
@@ -682,49 +674,49 @@ export default function FileOrganizer() {
         </TabsContent>
 
         <TabsContent value="rules">
-          <Card>
-            <CardHeader>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader className="dark:border-gray-700">
                 <div className="flex items-center justify-between">
-              <CardTitle>Organization Rules</CardTitle>
-                  <Button onClick={() => setShowRuleDialog(true)}>
+              <CardTitle className="dark:text-white">Organization Rules</CardTitle>
+                  <Button onClick={() => setShowRuleDialog(true)} className="dark:bg-white dark:text-black">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Rule
                   </Button>
                 </div>
-                <CardDescription>Define which file types belong in which folders</CardDescription>
+                <CardDescription className="dark:text-gray-400">Define which file types belong in which folders</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                   {organizationRules.map((rule) => (
-                    <div key={rule.id} className="rounded-lg border border-gray-300 p-4">
+                    <div key={rule.id} className="rounded-lg border border-gray-300 p-4 dark:border-gray-700 dark:bg-gray-800">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                           <FolderOpen className="h-5 w-5 text-amber-500" />
-                          <h3 className="font-medium">{rule.folder_name}</h3>
-                          <h4 className="text-gray-500 text-sm mt-0.">{normalizePath(rule.full_path)}</h4>
+                          <h3 className="font-medium dark:text-white">{rule.folder_name}</h3>
+                          <h4 className="text-gray-500 text-sm mt-0. dark:text-gray-400">{normalizePath(rule.full_path)}</h4>
                     </div>
                     <div className="flex items-center space-x-2">
                           <Badge
                             variant="outline"
-                            className={rule.enabled ? "bg-green-50 text-green-600 border border-gray-200/50" : "bg-red-50 text-red-600 border border-gray-200/50"}
+                            className={rule.enabled ? "bg-green-50 text-green-600 border border-gray-200/50 dark:bg-green-900/20 dark:text-green-400" : "bg-red-50 text-red-600 border border-gray-200/50 dark:bg-red-900/20 dark:text-red-400"}
                           >
                             {rule.enabled ? "Enabled" : "Disabled"}
                           </Badge>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 dark:text-gray-400 dark:hover:bg-gray-700">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditRule(rule.id)}>
+                            <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
+                              <DropdownMenuItem onClick={() => handleEditRule(rule.id)} className="dark:text-white dark:focus:bg-gray-700">
                                 <Pencil className="mr-2 h-4 w-4" />
                                 <span>Edit</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => toggleRuleEnabled(rule.id)}>
+                              <DropdownMenuItem onClick={() => toggleRuleEnabled(rule.id)} className="dark:text-white dark:focus:bg-gray-700">
                                 {rule.enabled ? <><Circle className="mr-2 h-4 w-4" />Disable</> : <><CircleX className="mr-2 h-4 w-4" />Enable</>}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => deleteRule(rule.id)}>
+                              <DropdownMenuItem onClick={() => deleteRule(rule.id)} className="dark:text-white dark:focus:bg-gray-700">
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 <span>Delete</span>
                               </DropdownMenuItem>
@@ -735,7 +727,7 @@ export default function FileOrganizer() {
                   <div className="space-y-2">
                         <div className="flex flex-wrap gap-2">
                           {rule.extensions.map((ext, index) => (
-                            <Badge key={index} variant="secondary">
+                            <Badge key={index} variant="secondary" className="dark:bg-gray-700 dark:text-gray-200">
                               {ext}
                             </Badge>
                           ))}
@@ -745,11 +737,11 @@ export default function FileOrganizer() {
                   ))}
 
                   {organizationRules.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-8 border rounded-lg border-dashed">
-                      <AlertCircle className="mb-4 h-10 w-10 text-gray-400" />
-                      <p className="mb-2 text-center text-lg font-medium">No rules defined</p>
-                      <p className="mb-4 text-center text-sm text-gray-500">Add rules to organize your files</p>
-                      <Button onClick={() => setShowRuleDialog(true)}>Add Rule</Button>
+                    <div className="flex flex-col items-center justify-center py-8 border rounded-lg border-dashed dark:border-gray-700">
+                      <AlertCircle className="mb-4 h-10 w-10 text-gray-400 dark:text-gray-600" />
+                      <p className="mb-2 text-center text-lg font-medium dark:text-white">No rules defined</p>
+                      <p className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">Add rules to organize your files</p>
+                      <Button className="dark:bg-white dark:text-black" onClick={() => setShowRuleDialog(true)}>Add Rule</Button>
                     </div>
                   )}
               </div>
@@ -766,27 +758,28 @@ export default function FileOrganizer() {
           setNewRule({ folder_name: "", desired_folder_path: "", extensions: [] })
         }
       }}>
-        <DialogContent>
+        <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
           <DialogHeader>
             {showEditRuleDialog == true ? (
-              <DialogTitle>Edit Organization Rule</DialogTitle>
+              <DialogTitle className="dark:text-white">Edit Organization Rule</DialogTitle>
             ) : (
-              <DialogTitle>Add Organization Rule</DialogTitle>
+              <DialogTitle className="dark:text-white">Add Organization Rule</DialogTitle>
             )}
-            <DialogDescription>Define which file types belong in which folder</DialogDescription>
+            <DialogDescription className="dark:text-gray-400">Define which file types belong in which folder</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="folder-name">Folder Name</Label>
+              <Label htmlFor="folder-name" className="dark:text-gray-300">Folder Name</Label>
               <Input
                 id="folder-name"
                 placeholder="Enter folder name"
                 value={newRule.folder_name}
                 onChange={(e) => setNewRule({ ...newRule, folder_name: e.target.value })}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-500"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="file-types">File Types</Label>
+              <Label htmlFor="file-types" className="dark:text-gray-300">File Types</Label>
               <Select
                 onValueChange={(value) => {
                   const fileType = fileTypes.find((type) => type.id.toString() === value)
@@ -798,12 +791,12 @@ export default function FileOrganizer() {
                   }
                 }}
               >
-                <SelectTrigger id="file-types">
+                <SelectTrigger id="file-types" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <SelectValue placeholder="Select file type category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
                   {fileTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id.toString()}>
+                    <SelectItem key={type.id} value={type.id.toString()} className="dark:text-white dark:focus:bg-gray-700">
                       <div className="flex items-center">
                         {type.icon}
                         <span className="ml-2">{type.category}</span>
@@ -815,10 +808,10 @@ export default function FileOrganizer() {
             </div>
             {newRule.extensions.length > 0 && (
               <div className="grid gap-2">
-                <Label>Selected Extensions</Label>
-                <div className="flex flex-wrap gap-2 p-2 ounded-md">
+                <Label className="dark:text-gray-300">Selected Extensions</Label>
+                <div className="flex flex-wrap gap-2 p-2 rounded-md dark:bg-background dark:border-gray-600">
                   {newRule.extensions.map((ext, index) => (
-                    <Badge key={index} variant="secondary">
+                    <Badge key={index} variant="secondary" className="dark:bg-gray-600 dark:text-gray-200">
                       {ext}
                     </Badge>
                   ))}
@@ -827,15 +820,15 @@ export default function FileOrganizer() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRuleDialog(false)}>
+            <Button variant="outline" onClick={() => setShowRuleDialog(false)} className="dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600">
               Cancel
             </Button>
             {showEditRuleDialog == true ? (
-              <Button onClick={handleUpdateRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
+              <Button className="dark:bg-white dark:text-black" onClick={handleUpdateRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
                 Edit Rule
               </Button>
             ) : (
-              <Button onClick={handleAddRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
+              <Button className="dark:bg-white dark:text-black" onClick={handleAddRule} disabled={!newRule.folder_name || newRule.extensions.length === 0}>
                 Add Rule
               </Button>
             )}
