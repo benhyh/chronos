@@ -117,6 +117,23 @@ export const api = {
     misplaced_files: MisplacedFile[],
   ): Promise<boolean> => {
     return await callPythonApi('organize_files', misplaced_files) || false;
+  },
+
+  update_organization_rule: async(
+    ruleId: string,
+    base_folder_directory: string,
+    folder_name: string,
+    desired_folder_directory: string,
+    extensions: string[]
+  ): Promise<OrganizationRule> => {
+    return await callPythonApi(
+      'update_organization_rule',
+      ruleId,
+      base_folder_directory,
+      folder_name,
+      desired_folder_directory,
+      extensions
+    );
   }
   
 };

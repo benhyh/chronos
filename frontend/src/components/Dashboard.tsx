@@ -31,24 +31,24 @@ const Dashboard = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest activities</CardDescription>
+        <Card className="dark:bg-gray-800 dark:border-gray-700">
+          <CardHeader className="dark:border-gray-700">
+            <CardTitle className="dark:text-white">Recent Activity</CardTitle>
+            <CardDescription className="dark:text-gray-400">Your latest activities</CardDescription>
           </CardHeader>
           {activityStatus == 0 ? (
             <CardContent>
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <FileText className="mb-4 h-12 w-12 text-gray-300" />
-                <h3 className="text-lg font-medium">No recent activity</h3>
-                <p className="mt-1 text-sm text-gray-500 max-w-md">
+                <FileText className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-lg font-medium dark:text-white">No recent activity</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-md">
                   Your recent activities will appear here once you start using the application.
                 </p>
                 <div className="mt-6 flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600">
                     Create a Task
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600">
                     Organize Files
                   </Button>
                 </div>
@@ -83,29 +83,29 @@ const Dashboard = () => {
         </Card>
 
         {taskStatus == 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Task Progress</CardTitle>
-              <CardDescription>Current status of your tasks</CardDescription>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader className="dark:border-gray-700">
+              <CardTitle className="dark:text-white">Task Progress</CardTitle>
+              <CardDescription className="dark:text-gray-400">Current status of your tasks</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <BarChart2 className="mb-4 h-12 w-12 text-gray-300" />
-                <h3 className="text-lg font-medium">No tasks in progress</h3>
-                <p className="mt-1 text-sm text-gray-500 max-w-md">
+                <BarChart2 className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-lg font-medium dark:text-white">No tasks in progress</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-md">
                   Create tasks to track your progress and see them here.
                 </p>
-                <Button className="mt-6" size="sm">
+                <Button className="mt-6 dark:bg-white dark:text-black" size="sm">
                   Create a Task
                 </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Task Progress</CardTitle>
-              <CardDescription>Current status of your tasks</CardDescription>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
+            <CardHeader className="dark:border-gray-700">
+              <CardTitle className="dark:text-white">Task Progress</CardTitle>
+              <CardDescription className="dark:text-gray-400">Current status of your tasks</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -134,13 +134,13 @@ function StatCard({
   description: string
 }) {
   return (
-    <Card>
+    <Card className="dark:bg-gray-800 dark:border-gray-700">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <p className="text-3xl font-bold">{value}</p>
-            <p className="text-xs text-gray-500">{description}</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
+            <p className="text-3xl font-bold dark:text-white">{value}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
           </div>
           {icon}
         </div>
@@ -163,10 +163,10 @@ function ActivityItem({
       <div className="mt-0.5 h-2 w-2 rounded-full bg-blue-500" />
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <p className="font-medium">{title}</p>
-          <span className="text-xs text-gray-500">{time}</span>
+          <p className="font-medium dark:text-white">{title}</p>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{time}</span>
         </div>
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
       </div>
     </div>
   )
@@ -184,7 +184,7 @@ function ProgressItem({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="font-medium">{title}</p>
+        <p className="font-medium dark:text-white">{title}</p>
         <span
           className={`text-xs ${
             status === "Completed" ? "text-green-500" : status === "In Progress" ? "text-blue-500" : "text-gray-500"
@@ -193,7 +193,7 @@ function ProgressItem({
           {status}
         </span>
       </div>
-      <div className="h-2 w-full bg-gray-200 rounded-full">
+      <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full">
         <div 
           className={`h-full rounded-full ${
             status === "Completed" ? "bg-green-500" : status === "In Progress" ? "bg-blue-500" : "bg-gray-300"
@@ -201,7 +201,7 @@ function ProgressItem({
           style={{ width: `${progress}%` }}
         ></div>
       </div>
-      <p className="text-xs text-gray-500">{progress}% complete</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400">{progress}% complete</p>
     </div>
   )
 }

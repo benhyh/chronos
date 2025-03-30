@@ -20,7 +20,7 @@ class TaskAPI:
         self.storage = Storage("tasks.db")  # To store our tasks
         
         # Organization rules as in-memory dictionary keyed by base folder path
-        self.organizaton_rules = {}
+        self.organization_rules = {}
         self.current_folder_path = None
         
         # Load tasks from database on startup
@@ -254,8 +254,8 @@ class TaskAPI:
             if folder_path:
                 self.current_folder_path = folder_path
                 # If this is a new folder, initalize empty rules
-                if folder_path not in self.organizaton_rules:
-                    self.organizaton_rules[folder_path] = []
+                if folder_path not in self.organization_rules:
+                    self.organization_rules[folder_path] = []
                     
                 return folder_path if folder_path else None
             
@@ -387,11 +387,11 @@ class TaskAPI:
             }
 
             # Initialize the list for this base folder if it doesn't exist
-            if base_folder_directory not in self.organizaton_rules:
-                self.organizaton_rules[base_folder_directory] = []
+            if base_folder_directory not in self.organization_rules:
+                self.organization_rules[base_folder_directory] = []
             
             # Add to in-memory rules
-            self.organizaton_rules[base_folder_directory].append(rule)
+            self.organization_rules[base_folder_directory].append(rule)
 
             return rule
         
@@ -404,11 +404,11 @@ class TaskAPI:
         if base_folder is None:
             base_folder = self.current_folder_path
         
-        if not base_folder or base_folder not in self.organizaton_rules:
+        if not base_folder or base_folder not in self.organization_rules:
             return False
         
-        rules = self.organizaton_rules[base_folder]
-        self.organizaton_rules[base_folder] = [rule for rule in rules if rule["id"] != rule_id]
+        rules = self.organization_rules[base_folder]
+        self.organization_rules[base_folder] = [rule for rule in rules if rule["id"] != rule_id]
 
         return True
     
@@ -417,24 +417,92 @@ class TaskAPI:
         if base_folder is None:
             base_folder = self.current_folder_path
         
-        if base_folder in self.organizaton_rules:
-            self.organizaton_rules[base_folder] = []
+        if base_folder in self.organization_rules:
+            self.organization_rules[base_folder] = []
             return True
         return False
     
-    def organize_files(misplaced_files):
-
+    def organize_files(self, misplaced_files):
+        """Organize files by moving them to their correct folders"""
         try:
             for file in misplaced_files:
                 source_path = file['source_path']
-                destination_path = file['destination_path']
-
+                destination_path = os.path.join(
+                    os.path.dirname(file['destination_path']),
+                    file['name']
+                )
+                
+                # Create the destination directory if it doesn't exist
                 os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-
+                
+                # Move the file
                 shutil.move(source_path, destination_path)
             
             return True
         except Exception as e:
-            print(f"There has an error in misplaced_files: {e}")
+            print(f"Error in organize_files: {e}")
             return False
+    
+    def update_organization_rule(self, rule_id: str, base_folder_directory: str, folder_name: str, desired_folder_directory: str, extensions: list[str]) -> dict:
+        """
+        Update an existing organization rule
+
+        Parameters:
+        - rule_id: ID of the rule to update
+        - base_folder_directory: Base folder directory
+        - desired_folder_directory: Desired folder directory
+        - extensions: List of extensions
+
+        Returns:
+        The updated rule as a dictionary
+        """
+
+        try:
+            updated_rule = {}
+
+            # Creates the desired file directory if it does not exist
+            target_folder = os.path.join(base_folder_directory, folder_name)
+            if not os.path.exists(target_folder):
+                os.makedirs(target_folder)
+                    
+            # Find the rule in memory
+            if base_folder_directory in self.organization_rules:
+                rules = self.organization_rules[base_folder_directory]
+                
+                index = -1
+                for i, rule in enumerate(rules):
+                    if rule["id"] == rule_id:
+                        index = i
+                        break
+
+                if (index != -1):
+                    rule = rules[index]
+
+                    desired_folder = os.path.join(base_folder_directory, desired_folder_directory)
+                    if not os.path.exists(desired_folder):
+                        os.makedirs(desired_folder)
+                    
+                    updated_rule = {          
+                        "id": rule_id,
+                        "base_folder_directory": base_folder_directory,
+                        "desired_folder_directory": desired_folder,
+                        "folder_name": folder_name,
+                        "full_path": target_folder,
+                        "extensions": extensions,
+                        "enabled": rule["enabled"]
+                    }
+
+                    self.organization_rules[base_folder_directory][index] = updated_rule
+                
+                else: 
+                    print("We couldn't find that rule in the list. Please try again.")
+                    return None
+            else:
+                print("We couldn't find any rules in the base folder directory. Please try again.")
+                return None
             
+            return updated_rule 
+        except Exception as e:
+            print(f"Failed to call update_organization_rule: {e}")
+            return None
+        
