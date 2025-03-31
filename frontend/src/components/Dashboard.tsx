@@ -1,32 +1,66 @@
-import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card"
 import { CheckCircle, FolderOpen, AlertCircle, FileText, BarChart2 } from "lucide-react"
 import { Button } from './ui/button';
+import { useEffect, useState } from "react";
+import { api, DashboardStats } from "@/lib/api";
 
-const Dashboard = () => {
+const Dashboard = ({ setActiveTab } : { setActiveTab: (tab: string) => void }) => {
   const activityStatus = 0;
-  const taskStatus = 0
-  
+  const taskStatus = 0;
+  const [statistics, setStatistics] = useState<DashboardStats>({
+    tasks_completed: 0,
+    files_organized: 0,
+    pending_tasks: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchStatistics()
+  }, [])
+
+  const fetchStatistics = async () => {
+    try {
+      setLoading(true);
+      const result = await api.getDashboardStats();
+      setStatistics(result);
+      setError(null);
+    } catch (error) {
+      console.log(`There has been an error with fetching the dashboard statistics: ${error}`)
+      setError("Failed to fetch dashboard stats. Check console for further information.")
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="flex justify-center p-8 dark:text-white">Loading dashboard stats...</div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center p-8 text-red-500">{error}</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           icon={<CheckCircle className="h-8 w-8 text-green-500" />}
           title="Tasks Completed"
-          value="0"
-          description="This week"
+          value={statistics.tasks_completed.toString()}
+          description="lifetime"
         />
         <StatCard
           icon={<FolderOpen className="h-8 w-8 text-amber-500" />}
           title="Files Organized"
-          value="0"
-          description="This month"
+          value={statistics.files_organized.toString()}
+          description="lifetime"
         />
         <StatCard
           icon={<AlertCircle className="h-8 w-8 text-red-500" />}
           title="Pending Tasks"
-          value="0"
-          description="Overdue"
+          value={statistics.pending_tasks.toString()}
+          description="get working boy"
         />
       </div>
 
@@ -45,10 +79,10 @@ const Dashboard = () => {
                   Your recent activities will appear here once you start using the application.
                 </p>
                 <div className="mt-6 flex gap-2">
-                  <Button variant="outline" size="sm" className="dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600">
+                  <Button onClick={() => setActiveTab("tasks")} variant="outline" size="sm" className="dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600">
                     Create a Task
                   </Button>
-                  <Button variant="outline" size="sm" className="dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600">
+                  <Button onClick={() => setActiveTab("files")} variant="outline" size="sm" className="dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:border-gray-600">
                     Organize Files
                   </Button>
                 </div>
@@ -95,7 +129,7 @@ const Dashboard = () => {
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 max-w-md">
                   Create tasks to track your progress and see them here.
                 </p>
-                <Button className="mt-6 dark:bg-white dark:text-black" size="sm">
+                <Button onClick={() => setActiveTab("tasks")} className="mt-6 dark:bg-white dark:text-black" size="sm">
                   Create a Task
                 </Button>
               </div>
@@ -119,9 +153,8 @@ const Dashboard = () => {
         )}
       </div>
     </div>
-  )
-}
-
+  );
+};
 function StatCard({
   icon,
   title,
@@ -131,7 +164,7 @@ function StatCard({
   icon: React.ReactNode
   title: string
   value: string
-  description: string
+  description?: string
 }) {
   return (
     <Card className="dark:bg-gray-800 dark:border-gray-700">
@@ -140,7 +173,9 @@ function StatCard({
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
             <p className="text-3xl font-bold dark:text-white">{value}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+            {description && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{description}</p>
+            )}
           </div>
           {icon}
         </div>

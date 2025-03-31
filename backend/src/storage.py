@@ -24,12 +24,44 @@ class Storage:
         finally:
             # Always close the connection when done (like locking the cabinet when finished)
             conn.close()
+    
+    def increment_stat(self, key, amount=1):
+        with self.get_connection() as conn:
+            conn.execute("UPDATE stats SET value = value + ? WHERE key = ?", (amount, key))
+            conn.commit()
+
+    def get_stats(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT key, value FROM stats")
+            return dict(cursor.fetchall())
 
     # This method creates the structure of our filing cabinet if it doesn't exist yet
     def init_db(self):
         with self.get_connection() as conn:
-            # First, check if the tasks table exists
+            # First, check if the stats table exists
             cursor = conn.cursor()
+            
+            # Get the stats table first
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stats'")
+            stats_table_exists = cursor.fetchone() is not None
+
+            if not stats_table_exists:
+                # Create stats table
+                conn.execute('''
+                    CREATE TABLE stats (
+                        key TEXT PRIMARY KEY,
+                        value INTEGER DEFAULT 0
+                    )              
+                ''')
+
+                for key in ["tasks_completed", "files_organized", "pending_tasks"]:
+                    conn.execute("INSERT INTO stats (key, value) VALUES (?, 0)", (key,))
+                
+                # Commit immediately after creating the stats table
+                conn.commit()
+            
+            # Getting the tasks table second
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
             table_exists = cursor.fetchone() is not None
             
@@ -47,6 +79,9 @@ class Storage:
                         priority INTEGER DEFAULT 1
                     )
                 ''')
+                # Commit after creating the tasks table
+                conn.commit()
+        
             else:
                 # Check if id column exists and is TEXT
                 cursor.execute("PRAGMA table_info(tasks)")
@@ -83,4 +118,3 @@ class Storage:
                     # Replace the old table with the new one
                     conn.execute("DROP TABLE tasks")
                     conn.execute("ALTER TABLE tasks_new RENAME TO tasks")
-    

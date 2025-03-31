@@ -100,6 +100,7 @@ class TaskAPI:
                 task.pending = False
                 
                 # Update in database
+                self.storage.increment_stat("tasks_completed")
                 self.update_task_in_db_by_id(task)
                 
                 return True
@@ -114,6 +115,9 @@ class TaskAPI:
                 task.pending = (status == 0)
                 task.inProgress = (status == 1)
                 task.completed = (status == 2)
+
+                if status == 2:
+                    self.storage.increment_stat("tasks_completed")
                 
                 # Update in database
                 self.update_task_in_db_by_id(task)
@@ -434,6 +438,8 @@ class TaskAPI:
                 
                 # Create the destination directory if it doesn't exist
                 os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
+                self.storage.increment_stat("files_organized")
                 
                 # Move the file
                 shutil.move(source_path, destination_path)
@@ -505,4 +511,24 @@ class TaskAPI:
         except Exception as e:
             print(f"Failed to call update_organization_rule: {e}")
             return None
+
+    def get_dashboard_stats(self):
+        """Get statistics of the dashboard"""
+        try:
         
+            stats = self.storage.get_stats()
+
+            # directly get our pending tasks from the task maanger
+            pending_count = sum(1 for task in self.task_manager.list_tasks() if task.pending)
+
+            stats["pending_tasks"] = pending_count
+
+            return stats
+        except Exception as e:
+            print(f"There has been an error with getting the dashboard stats: {e}")
+            return {
+                "tasks_completed": 0,
+                "files_organized": 0,
+                "pending_tasks": 0,
+            }
+    

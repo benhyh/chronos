@@ -32,6 +32,7 @@ interface Window {
           extensions: string[];
           enabled: boolean;
         }>>;
+        get_dashboard_stats: () => Promise<import('./lib/api').DashboardStats[]>;
         delete_organization_rule: (rule_id: string, base_folder?: string) => Promise<boolean>;
         clear_organization_rules: (base_folder?: string) => Promise<boolean>;
         organize_files: (misplaced_files: Array<{

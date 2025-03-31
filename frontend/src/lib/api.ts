@@ -8,6 +8,11 @@ export type Task = {
   status_code: 0 | 1 | 2;
 };
 
+export type DashboardStats2 = {
+  tasks_completed: number,
+  files_organized: number,
+  pending_tasks: number,
+}
 export interface FileSystemItem {
   id: string;
   name: string;
@@ -33,6 +38,12 @@ export interface OrganizationRule {
   full_path: string;
   extensions: string[];
   enabled: boolean;
+}
+
+export interface DashboardStats {
+  tasks_completed: number,
+  files_organized: number,
+  pending_tasks: number,
 }
  
 const isPyWebViewAvailable = (): boolean => {
@@ -61,6 +72,17 @@ const callPythonApi = async (method: string, ...args: PyWebViewApiArgs[]) => {
 export const api = {
   getAllTasks: async(): Promise<Task[]> => {
     return await callPythonApi('get_all_tasks') || [];
+  },
+
+  getDashboardStats: async(): Promise<DashboardStats> => {
+    const result = await callPythonApi('get_dashboard_stats');
+    // If result is an array, take the first item, otherwise use the result directly
+    const stats = Array.isArray(result) ? result[0] : result;
+    return stats || {
+      tasks_completed: 0,
+      files_organized: 0,
+      pending_tasks: 0,
+    };
   },
 
   addTask: async (
@@ -135,6 +157,7 @@ export const api = {
       extensions
     );
   }
+
   
 };
 
