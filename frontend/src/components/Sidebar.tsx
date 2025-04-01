@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
 import { Home, CheckSquare, FolderClosed } from "lucide-react"
 import { ReactNode } from 'react';
+import { Button } from './ui/button';
 
-export function Sidebar() {
+export function Sidebar({ setActiveTab } : { setActiveTab: (tab: string) => void }) {
   return (
     <div className="hidden border-r border-r-gray-300 dark:border-gray-800 bg-white dark:bg-gray-950 lg:block lg:w-64 md:w-32 sm:w-16 transition-colors duration-200">
         <div className="flex h-full flex-col">
@@ -13,9 +13,15 @@ export function Sidebar() {
                 </div>
             </div>
             <nav className="flex-1 space-y-1 px-3 py-4">
-                <SidebarItem href="/dashboard" icon={<Home size={20} />} label="Dashboard" />
-                <SidebarItem href="/tasks" icon={<CheckSquare size={20} />} label="Task Manager" />
-                <SidebarItem href="/files" icon={<FolderClosed size={20} />} label="File Organizer" />
+                <Button onClick={() => setActiveTab("dashboard")} variant="ghost" className="w-full justify-start">
+                    <SidebarItem icon={<Home size={20} />} label="Dashboard" />
+                </Button>
+                <Button onClick={() => setActiveTab("tasks")} variant="ghost" className="w-full justify-start">
+                    <SidebarItem icon={<CheckSquare size={20} />} label="Task Manager" />
+                </Button>
+                <Button onClick={() => setActiveTab("files")} variant="ghost" className="w-full justify-start">
+                    <SidebarItem icon={<FolderClosed size={20} />} label="File Organizer" />
+                </Button>
             </nav>
             <div className="border-t border-t-gray-300 dark:border-gray-800 p-4">
                 <div className="rounded-md bg-gray-100 dark:bg-gray-800 p-3">
@@ -31,19 +37,17 @@ export function Sidebar() {
 }
 
 interface SidebarItemProps {
-  href: string;
   icon: ReactNode;
   label: string;
 }
 
-function SidebarItem({ href, icon, label }: SidebarItemProps) {
+function SidebarItem({ icon, label }: SidebarItemProps) {
     return (
-      <Link
-        to={href}
-        className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+      <div
+        className="flex items-center rounded-md  py-2 text-sm font-medium text-gray-700 dark:text-gray-300  dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
       >
         <span className="mr-3 text-gray-500 dark:text-gray-400">{icon}</span>
         {label}
-      </Link>
+      </div>
     )
   }

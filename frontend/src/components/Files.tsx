@@ -323,6 +323,7 @@ export default function FileOrganizer() {
 
   // Function to handle organizing files
   const handleOrganizeFiles = async () => {
+    
     if (misplacedFiles.length === 0) {
       return
     }
@@ -333,14 +334,11 @@ export default function FileOrganizer() {
     try {
       const success = await api.organize_files(misplacedFiles);
       if (success) {
-        if (selectedFolder) {
-          await scanFolder(selectedFolder);
-        }
+        // Don't scan folder immediately - we'll do it after the progress reaches 100%
         setMisplacedFiles([]);
       } else {
         console.error("Failed to organize files.")
       }
-
     } catch (error) {
       console.log(`There has been an error with organizing the file: ${error}`)
     }
@@ -358,10 +356,13 @@ export default function FileOrganizer() {
         clearInterval(interval)
         setTimeout(() => {
           // After organizing, update the folder structure
-          // This would be where your Python backend would actually move the files
           updateFolderStructure()
           setIsOrganizing(false)
-          setMisplacedFiles([])
+          
+          // Only re-scan the folder after the organizing process is complete
+          if (selectedFolder) {
+            scanFolder(selectedFolder);
+          }
         }, 1000)
       }
     }, 500)

@@ -52,7 +52,6 @@ export default function TaskManager() {
     try {
       setLoading(true)
       const data = await api.getAllTasks()
-      console.log("Fetched tasks:", data) // Debug log
       setTasks(data)
       setError(null)
     } catch (err) {
@@ -635,7 +634,7 @@ function TaskList({
                       onStatusChange(task.id, 0); // 0 = Pending
                     }
                   }}
-                  className="dark:border-gray-600"
+                  className="dark:border-gray-600 data-[state=checked]:bg-black data-[state=checked]:text-white dark:data-[state=checked]:bg-white dark:data-[state=checked]:text-black"
                 />
                 <div>
                   <h3 className="font-medium dark:text-white">{task.title}</h3>

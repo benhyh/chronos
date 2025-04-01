@@ -7,8 +7,10 @@ import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import { Moon, Sun } from "lucide-react";
 
+
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     if (darkMode) {
@@ -22,7 +24,7 @@ export default function App() {
   
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <Sidebar />
+      <Sidebar setActiveTab={setActiveTab} />
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between mb-6">
@@ -32,10 +34,10 @@ export default function App() {
               <span className="sr-only">Toggle theme</span>
             </Button>
           </div>
-          <Tabs defaultValue="dashboard" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 dark:bg-gray-800">
               <TabsTrigger 
-                value="dashboard" 
+                value="dashboard"
                 className="dark:data-[state=active]:bg-gray-700 dark:text-gray-300 dark:data-[state=active]:text-white"
               >
                 Dashboard
@@ -56,7 +58,7 @@ export default function App() {
             </TabsList>
 
             <TabsContent value="dashboard">
-              <Dashboard />
+              <Dashboard setActiveTab={setActiveTab} />
             </TabsContent>
 
             <TabsContent value="tasks">
