@@ -61,6 +61,8 @@ interface Window {
           full_path: string;
           enabled: boolean;
         }>
+        get_recent_activities: () => Promise<import('./lib/api').Activity[]>;
+        get_latest_tasks: () => Promise<import('./lib/api').Activity[]>;
  };
 }
 

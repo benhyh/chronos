@@ -8,6 +8,15 @@ export type Task = {
   status_code: 0 | 1 | 2;
 };
 
+export type Activity = {
+  id: string;
+  type: string;
+  title: string;
+  timestamp: string; // When the activity occurred
+  status: string;
+  due_date?: string; // Optional due_date for task-related activities
+}
+
 export type DashboardStats2 = {
   tasks_completed: number,
   files_organized: number,
@@ -156,8 +165,15 @@ export const api = {
       desired_folder_directory,
       extensions
     );
-  }
+  },
 
+  get_recent_activities: async(): Promise<Activity[]> => {
+    return await callPythonApi('get_recent_activities') || [];
+  },
+
+  get_latest_tasks: async(): Promise<Activity[]> => {
+    return await callPythonApi('get_latest_tasks') || [];
+  }
   
 };
 

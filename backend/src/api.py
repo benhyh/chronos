@@ -55,14 +55,62 @@ class TaskAPI:
             tasks.append(task_dict)
         return tasks
     
+    def get_recent_activities(self):
+        try:
+            activities = self.storage.get_recent_activities()
+            return activities;
+        except Exception as e:
+            print(f"There has been error with getting the most recent activity for our dashboard: {e}")
+            return None
+
+
+    def get_latest_tasks(self):
+        try:
+            tasks = self.storage.get_latest_tasks()
+            return tasks;
+        except Exception as e:
+            print(f"There has been error with getting the latest tasks for our dashboard: {e}")
+            return None
+
+
+    def add_activity(self, id: str, type: str, title: str, timestamp: str, status: str, due_date: str = None):
+        try:
+            activity_data = {
+                "id": id,
+                "type": type,
+                "title": title,
+                "timestamp": timestamp,
+                "status": status,
+                "due_date": due_date
+            }
+            
+            activity = self.storage.add_activity(activity_data)
+
+            return activity
+        except Exception as e:
+            print(f"There has been error with adding the activity in our database for dashboard purposes: {e}")
+            return False
+
     def add_task(self, title, description, due_date=None, priority=1, status=0):
         # Create a new Task object with status based on integer code
         # 0: Pending, 1: In Progress, 2: Completed
+        
+        # Parse due_date in a timezone-safe way if present
+        parsed_due_date = None
+        if due_date:
+            # Strip any time component to avoid timezone issues
+            if 'T' in due_date:
+                due_date = due_date.split('T')[0]
+            elif ' ' in due_date:
+                due_date = due_date.split(' ')[0]
+            
+            parsed_due_date = datetime.fromisoformat(due_date)
+        
         new_task = Task(
             id= str(uuid.uuid4()),
             title=title,
             description=description, 
-            due_date=datetime.fromisoformat(due_date) if due_date else None,
+            due_date=parsed_due_date,
             priority=priority,
             pending=(status == 0),
             inProgress=(status == 1),
@@ -74,6 +122,16 @@ class TaskAPI:
 
         # Save to database
         self.save_task_to_db(new_task)
+    
+        # Add activity
+        self.add_activity(
+            id=str(uuid.uuid4()),
+            type="tasks",
+            title=f"Task created: {title}",
+            timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            status="Pending",
+            due_date=due_date
+        )
     
         # Return the task with status string for frontend
         try:
@@ -122,6 +180,17 @@ class TaskAPI:
                 # Update in database
                 self.update_task_in_db_by_id(task)
                 
+                # Add activity
+                status_strings = {0: "Pending", 1: "In Progress", 2: "Completed"}
+                self.add_activity(
+                    id=str(uuid.uuid4()),
+                    type="tasks",
+                    title=f"Task status updated: {task.title}",
+                    timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    status=status_strings.get(status, "Pending"),
+                    due_date=task.due_date.strftime('%Y-%m-%d') if task.due_date else None
+                )
+                
                 return True
         return False
     
@@ -131,8 +200,20 @@ class TaskAPI:
             if task.id == task_id:  # Using UUID instead of index
                 # Update task attributes
                 task.title = title if title != "" else task.title
-                task.description = description if description != "" else task.description 
-                task.due_date = datetime.fromisoformat(due_date) if due_date else None
+                task.description = description if description != "" else task.description
+                
+                # Parse due_date in a timezone-safe way if present
+                if due_date:
+                    # Strip any time component to avoid timezone issues
+                    if 'T' in due_date:
+                        due_date = due_date.split('T')[0]
+                    elif ' ' in due_date:
+                        due_date = due_date.split(' ')[0]
+                    
+                    task.due_date = datetime.fromisoformat(due_date)
+                else:
+                    task.due_date = None
+                
                 task.priority = priority if priority != 0 else task.priority
                 
                 # Update status flags based on integer code
@@ -443,6 +524,15 @@ class TaskAPI:
                 
                 # Move the file
                 shutil.move(source_path, destination_path)
+            
+            # Add activity
+            self.add_activity(
+                id=str(uuid.uuid4()),
+                type="organization",
+                title=f"Files organized: {len(misplaced_files)} files moved",
+                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                status="Completed"
+            )
             
             return True
         except Exception as e:

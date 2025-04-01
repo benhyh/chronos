@@ -35,6 +35,69 @@ class Storage:
             cursor = conn.cursor()
             cursor.execute("SELECT key, value FROM stats")
             return dict(cursor.fetchall())
+        
+    def get_recent_activities(self, activity_type="organization"):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, type, title, timestamp, status, due_date FROM activities WHERE type = ? ORDER BY timestamp DESC",
+                            (activity_type,) 
+            )
+            return [dict(zip(["id", "type", "title", "timestamp", "status", "due_date"], row)) for row in cursor.fetchall()]
+    
+    def get_latest_tasks(self, activity_type="tasks"):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, type, title, timestamp, status, due_date FROM activities WHERE type = ? ORDER BY timestamp DESC",
+                            (activity_type,) 
+            )
+            return [dict(zip(["id", "type", "title", "timestamp", "status", "due_date"], row)) for row in cursor.fetchall()]
+        
+    def add_activity(self, activity_data):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Check if the activities table exists
+            cursor.execute("SELECT name from sqlite_master WHERE type='table' AND name='activities'")
+            table_exists = cursor.fetchone() is not None
+            
+            if not table_exists:
+                # Table doesn't exist, so we can't add the activity
+                return False
+            
+            # Get the activity type
+            activity_type = activity_data['type']
+            
+            # Count existing activities of the same type
+            cursor.execute("SELECT COUNT(*) FROM activities WHERE type = ?", (activity_type,))
+            count = cursor.fetchone()[0]
+            
+            # If we already have 4 activities of this type, delete the oldest one
+            if count >= 4:
+                cursor.execute("""
+                    DELETE FROM activities 
+                    WHERE id = (
+                        SELECT id FROM activities 
+                        WHERE type = ? 
+                        ORDER BY timestamp ASC 
+                        LIMIT 1
+                    )
+                """, (activity_type,))
+            
+            # Insert the new activity data
+            conn.execute(
+                "INSERT INTO activities (id, type, title, timestamp, status, due_date) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    activity_data['id'],
+                    activity_data['type'],
+                    activity_data['title'],
+                    activity_data['timestamp'],
+                    activity_data['status'],
+                    activity_data.get('due_date', None),
+                )
+            )
+
+            conn.commit()
+            return True
 
     # This method creates the structure of our filing cabinet if it doesn't exist yet
     def init_db(self):
@@ -61,6 +124,35 @@ class Storage:
                 # Commit immediately after creating the stats table
                 conn.commit()
             
+            # Getting the latest activity/task progress table
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='activities'")
+            activities_table_exists = cursor.fetchone() is not None
+
+            if not activities_table_exists:
+                # Create activities table
+                conn.execute('''
+                    CREATE TABLE activities (
+                        id TEXT PRIMARY KEY,
+                        type TEXT NOT NULL,
+                        title TEXT,
+                        timestamp TEXT,
+                        status TEXT,
+                        due_date TEXT,
+                        progress INTEGER DEFAULT 0
+                    )       
+                ''')
+
+                conn.commit()
+
+            # Check if due_date column exists in activities table
+            if activities_table_exists:
+                cursor.execute("PRAGMA table_info(activities)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if "due_date" not in columns:
+                    # Add due_date column if it doesn't exist
+                    conn.execute("ALTER TABLE activities ADD COLUMN due_date TEXT")
+                    conn.commit()
+
             # Getting the tasks table second
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tasks'")
             table_exists = cursor.fetchone() is not None
